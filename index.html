@@ -1,0 +1,2375 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#c2410c">
+<title>모스부호 변환기 · 한글·영어 번역과 해석, 소리·빛·진동으로 보내고 소리를 들어 해독까지 (모스부호표 포함)</title>
+<meta name="description" content="한글과 영어를 모스부호로, 모스부호를 글자로 바꾸는 무료 모스부호 번역기입니다. 입력만 하면 방향을 알아서 정하고, 한글 모스부호의 쌍자음·겹받침까지 자연스럽게 되살립니다. 소리·화면 빛·손전등·진동으로 보내고, 소리 파일(WAV)·이미지로 저장하며, 마이크나 녹음 파일에서 삐삐 소리를 들어 해독하고, 직접 두드려 입력하거나 모스부호표로 외우기 연습도 할 수 있습니다. 설치 없이 PC와 휴대폰에서 됩니다.">
+<meta property="og:title" content="모스부호 변환기 · 한글·영어 번역, 소리로 보내고 들어서 해독까지">
+<meta property="og:description" content="한글·영어 ↔ 모스부호 자동 번역, 소리·빛·진동 재생, WAV 저장, 마이크로 듣고 해독, 모스부호표와 외우기 연습까지 설치 없이.">
+<meta property="og:type" content="website">
+<!-- 링크 미리보기 그림: 스크래퍼는 절대 주소만 읽으므로 배포 주소로 적는다. 그림은 make_thumbnail.py og 가 만든 og-image.png(1200×630) -->
+<meta property="og:image" content="https://hwj-hub.github.io/morse_code/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="모스부호 변환기 — 「사랑해」를 한글 모스부호 점과 선으로 바꾼 화면과 소리 재생 단추">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23c2410c'/%3E%3Ccircle cx='26' cy='50' r='10' fill='%23fff'/%3E%3Crect x='44' y='40' width='40' height='20' rx='10' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  color-scheme:light dark;
+  --bg:#f6f3f0; --card:#fff; --card2:#f7f4f1; --fg:#1c1612; --muted:#6b5f57; --line:#e8dfd8;
+  --accent:#c2410c; --accent2:#f97316; --afg:#fff;
+  --ok:#0b7f57; --okbg:#e2f4ec; --warn:#b45309; --warnbg:#fdf2e3; --danger:#cf3128; --dangerbg:#fdebe9;
+  --hl:#ffedd5; --hlfg:#9a3412;
+  --shadow:0 1px 2px rgba(28,22,18,.05),0 8px 24px -14px rgba(28,22,18,.32);
+  --r:16px;
+  --mono:ui-monospace,"Cascadia Mono","Consolas","D2Coding","Menlo",monospace;
+}
+@media (prefers-color-scheme:dark){
+ :root{
+  --bg:#110d0b; --card:#1b1512; --card2:#15100d; --fg:#f3ece6; --muted:#b3a59b; --line:#33271f;
+  --accent:#fb923c; --accent2:#fdba74; --afg:#2a1204;
+  --ok:#34d399; --okbg:#0b2a21; --warn:#fbbf24; --warnbg:#2b2210; --danger:#ff7b72; --dangerbg:#3a1614;
+  --hl:#4a2410; --hlfg:#fed7aa;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -16px rgba(0,0,0,.85);
+ }
+}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);line-height:1.55;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Malgun Gothic","Apple SD Gothic Neo",Roboto,sans-serif;
+  word-break:keep-all;overflow-wrap:break-word;
+  -webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:1280px;margin:0 auto;padding:0 14px calc(40px + env(safe-area-inset-bottom))}
+button{font:inherit;color:inherit}
+.hide{display:none !important}
+.nw{white-space:nowrap}
+
+/* ── 앱 안(네이버·카카오 WebView) 안내 띠 ── 마이크·손전등·파일 저장이 막히는 경우가 많다 */
+.iabar{display:none;align-items:center;gap:10px;margin:10px 0 0;padding:11px 12px;border-radius:12px;
+  background:var(--warnbg);border:1px solid color-mix(in srgb,var(--warn) 34%,transparent);line-height:1.5}
+body.inapp .iabar{display:flex}
+.iabar .ia-t{flex:1 1 auto;min-width:0;font-size:12.5px;font-weight:700;color:var(--fg)}
+.iabar .ia-t small{display:block;font-size:11.5px;font-weight:600;color:var(--muted);margin-top:2px}
+.iabar .ia-go{flex:0 0 auto;font:inherit;font-size:12.5px;font-weight:800;color:#fff;border:0;border-radius:999px;
+  padding:9px 14px;min-height:38px;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+@media (prefers-color-scheme:dark){.iabar .ia-go{color:var(--afg)}}
+.iabar .ia-x{flex:0 0 auto;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:transparent;
+  color:var(--muted);font:inherit;font-size:12px;line-height:1;cursor:pointer}
+/* ── 마이크·손전등이 막히는 곳(앱 안·블로그 글 안)에서 띄우는 창 ── */
+.iamodal{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;padding:18px;
+  background:rgba(12,8,6,.72);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+body.ia-lock{overflow:hidden}
+body.ia-lock .iamodal{display:flex}
+body.ia-lock .wrap{pointer-events:none}
+.iasheet{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);
+  width:100%;max-width:420px;max-height:92vh;overflow:auto;padding:22px 18px 16px;text-align:center}
+.iasheet .iaic{font-size:34px;line-height:1;margin-bottom:10px}
+.iasheet h2{font-size:17.5px;font-weight:800;letter-spacing:-.02em;margin:0 0 10px;line-height:1.45;text-wrap:balance}
+.iap{font-size:13.5px;font-weight:600;color:var(--muted);line-height:1.7;margin:0 0 14px}
+.iap b{color:var(--fg);font-weight:800}
+.iasteps{text-align:left;margin:0 0 16px;padding:12px 14px 12px 32px;border-radius:12px;background:var(--card2);
+  font-size:13px;font-weight:600;color:var(--muted);line-height:1.7}
+.iasteps li+li{margin-top:5px}
+.iasteps b{color:var(--fg);font-weight:800}
+.iabtn{display:block;width:100%;font:inherit;font-size:15px;font-weight:800;color:#fff;border:0;border-radius:12px;
+  padding:14px;min-height:52px;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:var(--shadow)}
+@media (prefers-color-scheme:dark){.iabtn{color:var(--afg)}}
+.iafine{margin:12px 0 0;font-size:12px;font-weight:600;color:var(--muted);line-height:1.6}
+.iafine button{font:inherit;font-size:12px;font-weight:700;color:var(--muted);background:none;border:0;padding:6px 8px;
+  text-decoration:underline;cursor:pointer;min-height:36px}
+
+
+/* ── 결과 카드 ── 화면을 덮지 않고 옆 칸(휴대폰은 본문) 흐름 안에 펼친다 */
+#doneCard{border-color:color-mix(in srgb,var(--ok) 40%,var(--line))}
+
+.dmsg{margin:0 0 10px;font-size:14px;font-weight:700;line-height:1.6}
+.dsteps{margin:0;padding:0 0 0 20px;font-size:13px;font-weight:600;line-height:1.75;color:var(--muted)}
+.dsteps b{color:var(--fg);font-weight:800}
+#doneImg{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:10px;margin:10px 0 0}
+.dimgnote{font-size:11.5px;font-weight:600;color:var(--muted);margin:6px 0 0;text-align:center}
+
+/* ── 두 칸 배치 · 넓은 화면에서 보내기 카드를 옆에 붙인다 ── */
+.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:0 16px}
+@media (min-width:980px){
+  .layout{grid-template-columns:minmax(0,1fr) 350px;align-items:start}
+  .side{position:sticky;top:8px;max-height:calc(100vh - 16px);overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:0 2px 2px}
+  .side .card{margin-top:10px}
+}
+
+header{text-align:center;padding:14px 0 2px}
+.logo{display:inline-flex;align-items:center;gap:9px;font-size:22px;font-weight:800;letter-spacing:-.02em}
+.logo .ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:#fff;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:var(--shadow)}
+.logo .ico i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#fff;margin-right:3px}
+.logo .ico u{display:inline-block;width:12px;height:6px;border-radius:3px;background:#fff}
+.tag{font-size:14.5px;font-weight:600;color:var(--muted);margin:7px 0 0;text-wrap:balance}
+.tag b{color:var(--fg)}
+.badges{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:9px}
+.badge{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--okbg);color:var(--ok)}
+.badge.gray{background:var(--card2);color:var(--muted);border:1px solid var(--line)}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;margin-top:14px}
+.card h2{font-size:12px;font-weight:800;color:var(--muted);margin:0 0 12px;letter-spacing:.07em;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.card h2 .n{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;margin-right:6px;
+  background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);letter-spacing:0;font-size:11.5px}
+
+/* ── 탭 ── */
+.tabs{display:flex;gap:5px;margin-top:14px;background:var(--card2);border:1px solid var(--line);border-radius:13px;padding:5px}
+.tabs button{flex:1 1 0;min-width:0;border:0;background:transparent;color:var(--muted);font-size:14.5px;font-weight:800;
+  padding:8px 4px;border-radius:9px;cursor:pointer;min-height:52px;transition:.15s;line-height:1.25}
+.tabs button i{display:block;font-style:normal;font-size:11px;font-weight:600;opacity:.8;margin-top:1px}
+.tabs button.on{background:var(--card);color:var(--accent);box-shadow:var(--shadow)}
+
+/* ── 공통 입력 ── */
+.row{margin-top:12px}
+.lab{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:13px;font-weight:800;margin-bottom:7px}
+.lab .hint{font-weight:600;color:var(--muted);font-size:12px;text-align:right}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1 1 60px;border:1px solid var(--line);background:var(--card2);font-size:13px;
+  font-weight:800;padding:6px 4px;border-radius:11px;cursor:pointer;min-height:44px;transition:.12s;line-height:1.2}
+.seg button i{display:block;font-style:normal;font-size:10.5px;font-weight:600;color:var(--muted);margin-top:2px}
+.seg button:hover{border-color:var(--accent)}
+.seg button.on{border-color:transparent;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:var(--shadow)}
+.seg button.on i{color:rgba(255,255,255,.88)}
+@media (prefers-color-scheme:dark){.seg button.on{color:var(--afg)}.seg button.on i{color:rgba(42,18,4,.75)}}
+.seg.sm button{min-height:38px;font-size:12.5px;flex:0 1 auto;padding:6px 12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--card2);
+  font-size:13.5px;font-weight:800;padding:8px 12px;border-radius:12px;cursor:pointer;min-height:44px;transition:.12s;text-decoration:none;color:var(--fg)}
+.btn:hover{border-color:var(--accent)}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.45;cursor:default;transform:none}
+.btn.pri{border-color:transparent;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:var(--shadow)}
+@media (prefers-color-scheme:dark){.btn.pri{color:var(--afg)}}
+.btn.on{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--card2))}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btns .btn{flex:1 1 130px}
+.play{width:100%;border:0;border-radius:14px;min-height:56px;font-size:17px;font-weight:800;cursor:pointer;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:var(--shadow);
+  display:flex;align-items:center;justify-content:center;gap:10px;transition:.12s}
+.play:active{transform:scale(.985)}
+.play.stop{background:var(--fg);color:var(--bg)}
+.play:disabled{opacity:.45;cursor:default}
+@media (prefers-color-scheme:dark){.play{color:var(--afg)}}
+.rng{width:100%;margin:0;height:34px;accent-color:var(--accent);cursor:pointer;touch-action:pan-y}
+.chk{display:flex;gap:10px;align-items:center;padding:6px 0;cursor:pointer;font-size:13.5px;font-weight:700;min-height:42px}
+.chk input{flex:0 0 auto;width:20px;height:20px;margin:0;accent-color:var(--accent)}
+.chk small{font-size:11.5px;color:var(--muted);font-weight:600}
+.small{font-size:12px;font-weight:600;color:var(--muted);line-height:1.65;margin:8px 0 0}
+.small b{color:var(--fg)}
+.note{border-radius:11px;padding:10px 12px;font-size:12.5px;font-weight:600;line-height:1.65;margin-top:11px}
+.note b{font-weight:800}
+.note.info{background:var(--card2);color:var(--muted);border:1px solid var(--line)}
+.note.info b{color:var(--fg)}
+.note.warn{background:var(--warnbg);color:var(--warn)}
+.note.bad{background:var(--dangerbg);color:var(--danger)}
+.note.good{background:var(--okbg);color:var(--ok)}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;letter-spacing:.01em;padding:4px 10px;border-radius:999px;
+  background:var(--okbg);color:var(--ok);white-space:nowrap}
+.pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.pill.idle{background:var(--card2);color:var(--muted);border:1px solid var(--line)}
+.pill.acc{background:color-mix(in srgb,var(--accent) 13%,transparent);color:var(--accent)}
+.pill.run::before{animation:blink 1.1s ease-in-out infinite}
+@keyframes blink{50%{opacity:.25}}
+
+/* ══ 변환 ══ */
+.dir{display:flex;align-items:center;gap:8px;margin:0 0 10px}
+.dir .side-l,.dir .side-r{flex:1 1 0;min-width:0;text-align:center;font-size:14px;font-weight:800;padding:9px 6px;border-radius:11px;background:var(--card2);border:1px solid var(--line)}
+.dir .side-l small,.dir .side-r small{display:block;font-size:10.5px;font-weight:700;color:var(--muted);margin-top:1px}
+.dir .swap{flex:0 0 auto;width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:18px;font-weight:800;color:var(--accent)}
+.dir .swap:hover{border-color:var(--accent)}
+.io{position:relative}
+textarea.inp{display:block;width:100%;min-height:128px;resize:vertical;font:inherit;font-size:17px;font-weight:600;line-height:1.6;
+  background:var(--card2);border:1px solid var(--line);border-radius:13px;padding:12px 14px;color:var(--fg)}
+textarea.inp.morse{font-family:var(--mono);letter-spacing:.06em;overflow-wrap:normal;word-break:normal}
+textarea.inp:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+.inbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
+.inbar .grow{flex:1 1 auto}
+.chip{font-size:12.5px;font-weight:800;padding:6px 11px;border-radius:9px;background:var(--card2);border:1px solid var(--line);white-space:nowrap;cursor:pointer;min-height:36px}
+.chip:hover{border-color:var(--accent)}
+.cnt{font-size:11.5px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+/* 점·선 자판 — 휴대폰 글자판으로 점과 선을 치기 번거로워서 */
+.kpad{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:10px}
+.kpad button{min-height:54px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:14px;font-weight:800;cursor:pointer;
+  touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.kpad button.big{font-size:26px;line-height:1;color:var(--accent)}
+.kpad button small{display:block;font-size:10.5px;font-weight:700;color:var(--muted);margin-top:2px}
+.kpad button:active{background:color-mix(in srgb,var(--accent) 14%,var(--card))}
+.outbox{margin-top:12px;border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));border-radius:14px;background:color-mix(in srgb,var(--accent) 4%,var(--card));padding:12px 14px;min-height:92px}
+.outhead{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.outhead b{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.06em}
+.out{font-size:19px;font-weight:700;line-height:1.75;white-space:pre-wrap;word-break:break-all;min-height:34px}
+.out.morse{font-family:var(--mono);font-size:19px;letter-spacing:.08em;word-break:normal;overflow-wrap:normal}
+.out.morse .t{white-space:nowrap}
+.out.text{word-break:keep-all;overflow-wrap:anywhere;font-size:21px}
+.out .ph{color:var(--muted);font-weight:600;font-size:14px;font-family:inherit;letter-spacing:0}
+.out .t{border-radius:5px;transition:background .06s}
+.out .t.cur{background:var(--hl);color:var(--hlfg)}
+.out .bad{color:var(--danger)}
+.out .sl{color:var(--muted);font-weight:600}
+.alt{margin-top:8px;font-size:12.5px;font-weight:600;color:var(--muted);line-height:1.6}
+.alt b{color:var(--fg);font-weight:800}
+.alt button{font:inherit;font-size:12.5px;font-weight:800;color:var(--accent);background:none;border:0;padding:4px 2px;cursor:pointer;text-decoration:underline;min-height:32px}
+.brk{display:flex;flex-wrap:wrap;gap:6px 4px;margin-top:10px}
+.brk .bk{display:inline-flex;flex-direction:column;align-items:center;min-width:34px;padding:5px 6px 4px;border-radius:9px;background:var(--card2);border:1px solid var(--line);cursor:pointer}
+.brk .bk b{font-size:15px;font-weight:800;line-height:1.2}
+.brk .bk span{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.05em;white-space:nowrap}
+.brk .bk.sp{min-width:14px;background:transparent;border-style:dashed;cursor:default}
+.brk .bk.cur{border-color:var(--accent);background:var(--hl)}
+.brk .bk.cur span{color:var(--hlfg)}
+
+/* ══ 보내기(옆 칸) ══ */
+.outs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.outs button{min-height:58px;border-radius:12px;border:1px solid var(--line);background:var(--card2);cursor:pointer;font-size:12.5px;font-weight:800;line-height:1.25;padding:4px 2px}
+.outs button .e{display:block;font-size:19px;margin-bottom:2px}
+.outs button.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--card));color:var(--accent)}
+.outs button:disabled{opacity:.4;cursor:default}
+.outs button.na{opacity:.45}
+.meter{height:8px;border-radius:9px;background:var(--line);overflow:hidden;margin-top:10px}
+.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:9px}
+.lamp-mini{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.lamp-mini .dot{width:22px;height:22px;border-radius:50%;background:var(--line);transition:background .03s,box-shadow .03s;flex:0 0 auto}
+.lamp-mini .dot.on{background:var(--accent2);box-shadow:0 0 16px var(--accent2)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.st{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:7px 9px;min-width:0}
+.st span{display:block;font-size:10.5px;font-weight:800;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st b{display:block;font-size:17px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.3;white-space:nowrap}
+.st b small{font-size:11px;color:var(--muted);font-weight:800;margin-left:1px}
+
+/* ══ 화면 빛 ══ 사용자가 켠 전체 화면 신호 — 본문 위를 통째로 덮는다 */
+#lamp{position:fixed;inset:0;z-index:200;display:none;background:#000;color:#fff;user-select:none;-webkit-user-select:none}
+#lamp.on{display:block}
+#lamp.lit{background:#fff}
+body.lampon{overflow:hidden}
+#lampTx{position:absolute;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);font-size:14px;font-weight:800;
+  background:rgba(40,30,24,.82);color:#fff;border-radius:12px;padding:8px 14px;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+#lampX{position:absolute;top:max(10px,env(safe-area-inset-top));right:10px;min-height:46px;padding:8px 16px;border-radius:999px;border:0;
+  background:rgba(40,30,24,.82);color:#fff;font-size:14px;font-weight:800;cursor:pointer}
+
+/* ══ 소리로 해독 ══ */
+.src{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.src .btn{min-height:58px;font-size:14.5px}
+.scope{display:block;width:100%;height:120px;border-radius:12px;background:#140f0c;border:1px solid var(--line);margin-top:12px}
+.dec{margin-top:12px;border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));border-radius:14px;padding:12px 14px;background:color-mix(in srgb,var(--accent) 4%,var(--card))}
+.dec .txt{font-size:22px;font-weight:800;line-height:1.6;min-height:36px;white-space:pre-wrap;overflow-wrap:anywhere}
+.dec .mor{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--muted);margin-top:6px;letter-spacing:.06em;word-break:normal;overflow-wrap:normal;max-height:120px;overflow:auto}
+.dec .txt .ph,.dec .mor .ph{font-family:inherit;font-size:14px;color:var(--muted);font-weight:600;letter-spacing:0}
+.dec .live{color:var(--accent)}
+.filebar{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.filebar audio{flex:1 1 auto;min-width:0;height:40px}
+
+/* ══ 두드려 입력 ══ */
+.key{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-height:190px;border-radius:18px;border:2px solid var(--line);
+  background:radial-gradient(circle at 50% 42%,color-mix(in srgb,var(--accent) 16%,var(--card)),var(--card2));cursor:pointer;
+  user-select:none;-webkit-user-select:none;touch-action:none;outline:0;text-align:center;padding:14px;margin-top:12px;transition:transform .04s}
+.key:focus-visible{border-color:var(--accent)}
+.key.dn{transform:scale(.985);border-color:var(--accent);background:radial-gradient(circle at 50% 42%,color-mix(in srgb,var(--accent) 40%,var(--card)),color-mix(in srgb,var(--accent) 14%,var(--card2)))}
+.key .kb1{font-size:22px;font-weight:800}
+.key .kb2{font-size:12.5px;font-weight:700;color:var(--muted);margin-top:4px}
+.key .cursym{font-family:var(--mono);font-size:30px;font-weight:800;color:var(--accent);min-height:44px;letter-spacing:.12em;margin-top:8px}
+.tbar{height:6px;border-radius:6px;background:var(--line);overflow:hidden;margin-top:8px}
+.tbar i{display:block;height:100%;width:0;background:var(--accent)}
+
+/* ══ 부호표 ══ */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px;margin-top:10px}
+.cell{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:74px;border-radius:12px;border:1px solid var(--line);
+  background:var(--card2);cursor:pointer;padding:6px 4px;touch-action:manipulation}
+.cell:hover{border-color:var(--accent)}
+.cell.cur{border-color:var(--accent);background:var(--hl)}
+.cell b{font-size:21px;font-weight:800;line-height:1.1}
+.cell .cd{display:flex;align-items:center;gap:4px;min-height:14px}
+.cell .cd i{display:block;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.cell .cd u{display:block;width:20px;height:8px;border-radius:4px;background:var(--accent)}
+.cell .cd.l{gap:2px}
+.cell .cd.l i{width:6px;height:6px}
+.cell .cd.l u{width:12px;height:6px;border-radius:3px}
+.cell small{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em}
+.gh{font-size:13px;font-weight:800;margin:16px 0 0}
+.gh small{font-weight:600;color:var(--muted);font-size:12px;margin-left:6px}
+.quiz{margin-top:12px;border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--card2);text-align:center}
+.quiz .q{font-size:34px;font-weight:800;min-height:52px;font-family:var(--mono);letter-spacing:.1em}
+.quiz .q.kr{font-family:inherit;letter-spacing:0}
+.quiz .qs{font-size:12.5px;font-weight:700;color:var(--muted)}
+.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.choices button{min-height:56px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:20px;font-weight:800;cursor:pointer}
+.choices button.mono{font-family:var(--mono);font-size:17px;letter-spacing:.08em}
+.choices button.ok{background:var(--okbg);border-color:var(--ok);color:var(--ok)}
+.choices button.no{background:var(--dangerbg);border-color:var(--danger);color:var(--danger)}
+
+/* ── 설명 ── */
+.use{list-style:none;margin:0;padding:0}
+.use li{position:relative;padding-left:26px;margin-bottom:13px;font-size:13.5px;font-weight:600;line-height:1.65}
+.use li:last-child{margin-bottom:0}
+.use li::before{content:"▸";position:absolute;left:4px;top:0;color:var(--accent);font-weight:800}
+.use li b{font-weight:800}
+.use li .d{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-top:3px;line-height:1.7}
+.tbl{overflow-x:auto;margin:4px 0 0;-webkit-overflow-scrolling:touch}
+.tbl table{border-collapse:collapse;width:100%;min-width:520px;font-size:13px}
+.tbl th,.tbl td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:middle;line-height:1.6}
+.tbl th{font-size:11.5px;color:var(--muted);font-weight:800;background:var(--card2);white-space:nowrap}
+.tbl td b{font-weight:800}
+.tbl td code{font-family:var(--mono);font-weight:700;letter-spacing:.05em;white-space:nowrap}
+details.faq{border-top:1px solid var(--line);padding:12px 0}
+details.faq:first-of-type{border-top:0}
+details.faq summary{cursor:pointer;font-weight:700;font-size:14px;list-style:none;padding:10px 0;margin:-10px 0}
+details.faq summary::-webkit-details-marker{display:none}
+details.faq summary::before{content:"＋ ";color:var(--accent);font-weight:800}
+details.faq[open] summary::before{content:"－ "}
+details.faq p{margin:8px 0 0;font-size:13.5px;color:var(--muted);line-height:1.8}
+details.faq p b{color:var(--fg)}
+details.faq code{font-family:var(--mono);font-weight:700;color:var(--fg)}
+
+/* ══ 주의 문구 ══ */
+.nbx{border:1px solid var(--warn);border-radius:14px;background:var(--warnbg);padding:14px 15px;margin-top:14px}
+.nbx-h{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:800;color:var(--warn);margin:0 0 10px}
+.nbx-h .ic{flex:0 0 auto;width:19px;height:19px;border-radius:6px;background:var(--warn);color:var(--warnbg);
+  font-size:12px;font-weight:800;display:grid;place-items:center;line-height:1}
+.nbx ul{list-style:none;margin:0;padding:0}
+.nbx li{position:relative;padding-left:12px;margin-bottom:7px;font-size:12px;font-weight:600;line-height:1.68;color:var(--warn)}
+.nbx li:last-child{margin-bottom:0}
+.nbx li::before{content:"·";position:absolute;left:1px;top:-1px;font-weight:800}
+.nbx li b{font-weight:800}
+.nbx .nbx-f{margin:11px 0 0;padding-top:10px;border-top:1px solid color-mix(in srgb,var(--warn) 32%,transparent);
+  font-size:12px;font-weight:700;line-height:1.72;color:var(--warn)}
+
+footer{text-align:center;color:var(--muted);font-size:12px;margin-top:22px;line-height:1.8}
+footer b{color:var(--fg)}
+#toast{position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#1c1612;color:#fff;font-size:13.5px;
+  font-weight:700;line-height:1.5;padding:10px 16px;border-radius:14px;width:max-content;opacity:0;pointer-events:none;transition:.25s;z-index:300;
+  max-width:92vw;text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+@media (prefers-color-scheme:dark){#toast{background:#f3ece6;color:#2a1204}}
+
+@media (max-width:520px){
+  .card{padding:13px}
+  .tag{font-size:13.5px}
+  .badges{display:none}
+  .tabs button{font-size:13px;min-height:54px;padding:5px 2px;letter-spacing:-.02em}
+  .tabs button i{display:none}
+  .tabs button .e{display:block;font-size:17px;line-height:1.2;margin-bottom:1px}
+  .out.morse{font-size:17px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(78px,1fr))}
+}
+@media (max-width:360px){
+  .tabs button{font-size:12px}
+  .outs button{font-size:11.5px}
+}
+/* 부호표 인쇄 — 표만 A4 에 */
+@media print{
+  body{background:#fff;color:#000}
+  body *{visibility:hidden}
+  #printArea,#printArea *{visibility:visible}
+  #printArea{position:absolute;left:0;top:0;width:100%}
+  #printArea .cell{break-inside:avoid;background:#fff;border-color:#999}
+  #printArea .cell .cd i,#printArea .cell .cd u{background:#000 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printArea .noprint{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- 네이버·카카오 앱 안에서 열렸을 때만 보이는 띠 (body.inapp)
+     변환·소리 재생은 앱 안에서도 되므로 화면을 막지는 않는다.
+     막히는 기능(마이크·손전등)을 누르는 순간에만 창을 띄운다 -->
+<div class="iabar" id="iabar">
+  <div class="ia-t"><span id="iaMsg">앱 안에서는 마이크·손전등·파일 저장이 막힐 수 있어요.</span>
+    <small id="iaSub">변환과 소리 재생은 여기서도 됩니다.</small></div>
+  <button class="ia-go" id="iaGo" type="button">크롬에서 열기</button>
+  <button class="ia-x" id="iaX" type="button" aria-label="안내 닫기">✕</button>
+</div>
+
+<header>
+  <div class="logo"><span class="ico" aria-hidden="true"><span><i></i><u></u></span></span><span>모스부호 변환기</span></div>
+  <p class="tag">한글·영어를 <b>모스부호</b>로, 모스부호를 <b>글자</b>로 — 소리·빛·진동으로 보내고, <b>소리를 들어 해독</b>까지</p>
+  <div class="badges">
+    <span class="badge">🔒 입력한 글·녹음은 어디에도 전송 안 함</span>
+    <span class="badge gray">한글 쌍자음·겹받침까지</span>
+    <span class="badge gray">WAV 소리 파일 저장</span>
+    <span class="badge gray">무료 · 설치 없음</span>
+  </div>
+</header>
+
+<div class="tabs" id="tabs" role="tablist">
+  <button type="button" role="tab" data-tab="conv" id="tabConv"><span class="e">⇄</span> 변환<i>글자 ↔ 모스부호</i></button>
+  <button type="button" role="tab" data-tab="listen" id="tabListen"><span class="e">🎧</span> 소리 해독<i>마이크·녹음 파일</i></button>
+  <button type="button" role="tab" data-tab="tap" id="tabTap"><span class="e">👆</span> 두드리기<i>눌러서 입력</i></button>
+  <button type="button" role="tab" data-tab="table" id="tabTable"><span class="e">📖</span> 부호표<i>외우기 연습</i></button>
+</div>
+
+<div class="layout">
+<main id="stage">
+
+<!-- ═════════════ 변환 ═════════════ -->
+<section class="panel" id="pConv">
+  <section class="card" id="convCard">
+    <h2><span><span class="n">1</span>글자나 모스부호를 넣으세요</span><span class="pill idle" id="dirPill">방향 자동</span></h2>
+    <div class="dir">
+      <div class="side-l" id="dirL">글자<small>한글 · 영어 · 숫자</small></div>
+      <button class="swap" id="swapBtn" type="button" aria-label="결과를 입력 칸으로 옮겨 거꾸로 바꾸기" title="결과를 입력 칸으로 옮기기">⇄</button>
+      <div class="side-r" id="dirR">모스부호<small>· 점 − 선</small></div>
+    </div>
+    <div class="io">
+      <label for="inp" class="hide">입력</label>
+      <textarea class="inp" id="inp" spellcheck="false" autocomplete="off" placeholder="예) 사랑해 · HELLO · SOS&#10;또는 모스부호  ... --- ...  를 붙여 넣으세요"></textarea>
+    </div>
+    <div class="inbar">
+      <button class="chip" type="button" data-ex="사랑해">사랑해</button>
+      <button class="chip" type="button" data-ex="SOS">SOS</button>
+      <button class="chip" type="button" data-ex="HELLO WORLD">HELLO</button>
+      <button class="chip" type="button" data-ex="도와주세요">도와주세요</button>
+      <span class="grow"></span>
+      <span class="cnt" id="inCnt">0자</span>
+      <button class="chip" type="button" id="kpadBtn" aria-pressed="false">·− 자판</button>
+      <button class="chip" type="button" id="clrBtn">지우기</button>
+    </div>
+    <div class="kpad hide" id="kpad" aria-label="점·선 자판">
+      <button type="button" class="big" data-k="." aria-label="점">·<small>점</small></button>
+      <button type="button" class="big" data-k="-" aria-label="선">−<small>선</small></button>
+      <button type="button" data-k=" ">글자<small>띄우기</small></button>
+      <button type="button" data-k=" / ">단어<small>/ 띄우기</small></button>
+      <button type="button" data-k="bs" aria-label="한 칸 지우기">⌫<small>지우기</small></button>
+    </div>
+
+    <div class="outbox" id="outBox">
+      <div class="outhead">
+        <b id="outLab">모스부호</b>
+        <div class="seg sm" id="styleSeg" title="모스부호 표기">
+          <button type="button" data-v="ascii">. −</button>
+          <button type="button" data-v="dot">· −</button>
+        </div>
+        <div class="seg sm hide" id="readSeg" title="읽는 방식">
+          <button type="button" data-v="auto">자동</button>
+          <button type="button" data-v="ko">한글로</button>
+          <button type="button" data-v="en">영문으로</button>
+        </div>
+      </div>
+      <div class="out morse" id="out" aria-live="polite"><span class="ph">위 칸에 입력하면 여기에 바로 바뀌어 나옵니다</span></div>
+      <div class="alt hide" id="altLine"></div>
+      <div class="note warn hide" id="warnLine"></div>
+      <div class="btns">
+        <button class="btn" type="button" id="copyBtn">📋 결과 복사</button>
+        <button class="btn" type="button" id="linkBtn">🔗 링크로 보내기</button>
+      </div>
+    </div>
+    <details class="faq" style="margin-top:6px" id="brkWrap">
+      <summary>글자마다 어떤 부호인지 보기</summary>
+      <div class="brk" id="brk"></div>
+    </details>
+  </section>
+</section>
+
+<!-- ═════════════ 소리로 해독 ═════════════ -->
+<section class="panel hide" id="pListen">
+  <section class="card" id="lsCard">
+    <h2><span><span class="n">1</span>모스부호 소리를 들려주세요</span><span class="pill idle" id="lsPill">대기 중</span></h2>
+    <div class="src">
+      <button class="btn pri" type="button" id="micBtn">🎤 마이크로 듣기</button>
+      <button class="btn" type="button" id="fileBtn">📁 녹음·영상 파일 열기</button>
+      <input type="file" id="fileIn" class="hide" accept="audio/*,video/*,.wav,.mp3,.m4a,.ogg,.oga,.webm,.mp4,.aac,.flac">
+    </div>
+    <div class="filebar hide" id="fileBar"><span id="fileName"></span><audio id="fileAudio" controls preload="metadata"></audio></div>
+    <canvas class="scope" id="scope" width="900" height="120" aria-label="소리 세기 그래프"></canvas>
+    <div class="stats">
+      <div class="st"><span>음높이</span><b id="lsHz">–</b></div>
+      <div class="st"><span>빠르기</span><b id="lsWpm">–</b></div>
+      <div class="st"><span>신호 세기</span><b id="lsSnr">–</b></div>
+    </div>
+    <div class="dec">
+      <div class="outhead"><b>들린 내용</b>
+        <div class="seg sm" id="lsReadSeg">
+          <button type="button" data-v="auto">자동</button>
+          <button type="button" data-v="ko">한글로</button>
+          <button type="button" data-v="en">영문으로</button>
+        </div>
+      </div>
+      <div class="txt" id="lsTxt"><span class="ph">소리가 들리면 여기에 글자가 나타납니다</span></div>
+      <div class="mor" id="lsMor"></div>
+    </div>
+    <div class="btns">
+      <button class="btn" type="button" id="lsToConv">⇄ 변환 칸으로 보내기</button>
+      <button class="btn" type="button" id="lsClear">지우기</button>
+    </div>
+    <p class="small">삐― 하는 <b>한 가지 높이의 소리</b>(보통 500~1000Hz)를 알아서 찾아 점·선 길이를 잽니다. 빠르기는 들으면서 맞춰 가므로 처음 몇 글자는 틀릴 수 있어요. 잡음이 많은 곳에서는 휴대폰을 스피커 가까이 대 주세요.</p>
+    <div class="note info"><b>녹음 파일</b>은 한 번에 끝까지 읽어서 마이크보다 정확합니다. 유튜브 영상 소리는 화면 녹화·녹음 파일로 저장해 열면 됩니다(동영상 파일도 소리만 읽어요).</div>
+  </section>
+</section>
+
+<!-- ═════════════ 두드려 입력 ═════════════ -->
+<section class="panel hide" id="pTap">
+  <section class="card" id="tapCard">
+    <h2><span><span class="n">1</span>짧게 누르면 점, 길게 누르면 선</span><span class="pill idle" id="tapPill">누르면 시작</span></h2>
+    <div class="seg" id="tapSpdSeg">
+      <button type="button" data-v="8">느리게<i>처음 해 볼 때</i></button>
+      <button type="button" data-v="13">보통<i>분당 13단어</i></button>
+      <button type="button" data-v="20">빠르게<i>익숙할 때</i></button>
+    </div>
+    <div class="key" id="key" tabindex="0" role="button" aria-label="전신 키 — 누르고 있는 동안 소리가 납니다">
+      <div class="kb1">여기를 눌렀다 떼세요</div>
+      <div class="kb2">PC는 이 상자를 누른 뒤 <b>스페이스바</b>로도 됩니다</div>
+      <div class="cursym" id="tapSym"></div>
+    </div>
+    <div class="tbar"><i id="tapGap"></i></div>
+    <p class="small">잠깐 멈추면 <b>한 글자</b>, 조금 더 멈추면 <b>띄어쓰기</b>로 봅니다. 누르는 빠르기에 맞춰 점·선 기준이 조금씩 바뀝니다.</p>
+    <div class="dec">
+      <div class="outhead"><b>두드린 내용</b>
+        <div class="seg sm" id="tapReadSeg">
+          <button type="button" data-v="auto">자동</button>
+          <button type="button" data-v="ko">한글로</button>
+          <button type="button" data-v="en">영문으로</button>
+        </div>
+      </div>
+      <div class="txt" id="tapTxt"><span class="ph">예) 짧게 세 번 · 길게 세 번 · 짧게 세 번 → SOS</span></div>
+      <div class="mor" id="tapMor"></div>
+    </div>
+    <div class="btns">
+      <label class="chk" style="flex:1 1 160px"><input type="checkbox" id="tapTone" checked> 누를 때 소리 내기</label>
+      <button class="btn" type="button" id="tapBack">⌫ 한 글자 지우기</button>
+      <button class="btn" type="button" id="tapClear">모두 지우기</button>
+      <button class="btn" type="button" id="tapToConv">⇄ 변환 칸으로 보내기</button>
+    </div>
+  </section>
+</section>
+
+<!-- ═════════════ 부호표 ═════════════ -->
+<section class="panel hide" id="pTable">
+  <section class="card" id="tblCard">
+    <h2><span><span class="n">1</span>모스부호표 — 누르면 소리가 납니다</span></h2>
+    <div class="seg" id="setSeg">
+      <button type="button" data-v="en">영문<i>A~Z</i></button>
+      <button type="button" data-v="num">숫자·기호</button>
+      <button type="button" data-v="ko">한글<i>자음·모음</i></button>
+    </div>
+    <div id="printArea">
+      <div id="tblBody"></div>
+    </div>
+    <div class="btns">
+      <button class="btn" type="button" id="printBtn">🖨 이 표 인쇄</button>
+      <button class="btn" type="button" id="tblPng">🖼 표 이미지 저장</button>
+    </div>
+  </section>
+
+  <section class="card" id="quizCard">
+    <h2><span><span class="n">2</span>외우기 연습 · 10문제</span><span class="pill idle" id="qzPill">준비</span></h2>
+    <div class="seg" id="qzSetSeg">
+      <button type="button" data-v="en">영문</button>
+      <button type="button" data-v="num">숫자</button>
+      <button type="button" data-v="koC">한글 자음</button>
+      <button type="button" data-v="koV">한글 모음</button>
+    </div>
+    <div class="seg" id="qzModeSeg" style="margin-top:8px">
+      <button type="button" data-v="hear">소리 듣고<i>글자 고르기</i></button>
+      <button type="button" data-v="see">부호 보고<i>글자 고르기</i></button>
+      <button type="button" data-v="rev">글자 보고<i>부호 고르기</i></button>
+    </div>
+    <div class="quiz" id="quiz">
+      <div class="qs" id="qzStat">시작을 누르면 문제가 나옵니다</div>
+      <div class="q" id="qzQ"></div>
+      <div class="choices hide" id="qzCh"></div>
+      <div class="btns" style="justify-content:center">
+        <button class="btn pri" type="button" id="qzStart" style="flex:0 1 220px">▶ 연습 시작</button>
+        <button class="btn hide" type="button" id="qzAgain" style="flex:0 1 160px">🔊 다시 듣기</button>
+      </div>
+    </div>
+  </section>
+</section>
+</main>
+
+<aside class="side" id="side">
+  <section class="card" id="sendCard">
+    <h2><span><span class="n">2</span>보내기 · 저장</span><span class="pill idle" id="sendPill">변환 결과</span></h2>
+    <div class="outs" id="outs">
+      <button type="button" data-o="snd" class="on"><span class="e">🔊</span>소리</button>
+      <button type="button" data-o="scr"><span class="e">💡</span>화면 빛</button>
+      <button type="button" data-o="torch"><span class="e">🔦</span>손전등</button>
+      <button type="button" data-o="vib"><span class="e">📳</span>진동</button>
+    </div>
+    <button class="play" type="button" id="playBtn" style="margin-top:10px">▶ 보내기</button>
+    <div class="meter"><i id="playMeter"></i></div>
+    <div class="lamp-mini"><span class="dot" id="lampDot"></span><span id="playInfo">결과가 생기면 길이를 알려 드려요</span></div>
+    <div class="row">
+      <div class="lab"><span>빠르기</span><span class="hint" id="wpmHint">분당 15단어 · 점 80ms</span></div>
+      <input type="range" class="rng" id="wpm" min="5" max="35" step="1" value="15" aria-label="빠르기(분당 단어 수)">
+    </div>
+    <div class="row">
+      <div class="lab"><span>소리 높이</span><span class="hint" id="hzHint">600Hz</span></div>
+      <input type="range" class="rng" id="hz" min="400" max="1000" step="10" value="600" aria-label="소리 높이">
+    </div>
+    <div class="row">
+      <div class="lab"><span>소리 크기</span><span class="hint" id="volHint">60%</span></div>
+      <input type="range" class="rng" id="vol" min="5" max="100" step="5" value="60" aria-label="소리 크기">
+    </div>
+    <label class="chk"><input type="checkbox" id="farns"> 글자 사이를 넓게 <small>· 초보 듣기용</small></label>
+    <label class="chk"><input type="checkbox" id="loop"> 끝나면 다시 반복 <small>· SOS 신호용</small></label>
+    <div class="btns">
+      <button class="btn" type="button" id="wavBtn">🎵 소리 파일(WAV)</button>
+      <button class="btn" type="button" id="pngBtn">🖼 이미지 카드</button>
+    </div>
+    <label class="chk"><input type="checkbox" id="cardPlain" checked> 이미지에 원래 글자도 넣기 <small>· 끄면 부호만</small></label>
+    <p class="small" id="sendNote">화면 빛은 눈을 위해 <b>분당 8단어</b>보다 빨라지지 않게 늦춰서 깜빡입니다.</p>
+  </section>
+
+  <!-- 결과 카드 — 소리 파일·이미지 저장, 파일 해독 완료, 연습 10문제 완료 같은
+       「결과가 나온 순간」에만 펼쳐지고, 화면을 덮지 않습니다 -->
+  <section class="card hide" id="doneCard">
+    <h2><span id="doneTitle">저장했습니다</span><button class="btn" id="doneHide" type="button" style="min-height:36px;padding:4px 12px;font-size:12.5px">닫기</button></h2>
+    <p class="dmsg" id="doneMsg"></p>
+    <ol class="dsteps" id="doneSteps"></ol>
+    <img id="doneImg" class="hide" alt="저장한 모스부호 이미지">
+    <p class="dimgnote hide" id="doneImgNote">휴대폰에서는 이미지를 길게 눌러 사진으로 저장할 수도 있습니다</p>
+  </section>
+
+</aside>
+</div>
+
+<!-- ══════════ 설명 ══════════ -->
+<section class="card">
+  <h2><span>이럴 때 씁니다</span></h2>
+  <ul class="use">
+    <li><b>모스부호로 된 문제·암호를 풀 때</b>
+      <span class="d">방탈출·보물찾기·수업 과제에서 받은 점과 선을 붙여 넣으면 글자로 바뀝니다. 한글인지 영어인지 몰라도 <b>둘 다 읽어 보고</b> 말이 되는 쪽을 먼저 보여 줍니다.</span></li>
+    <li><b>고백·생일 축하 같은 말을 모스부호로 전할 때</b>
+      <span class="d">「사랑해」를 넣으면 부호가 나오고, <b>소리 파일</b>이나 <b>이미지 카드</b>로 저장하거나 <b>링크</b>로 보낼 수 있습니다. 받는 사람이 링크를 열면 부호가 그대로 들어가 해독해 볼 수 있어요.</span></li>
+    <li><b>영상·게임 속 삐삐 소리가 무슨 뜻인지 궁금할 때</b>
+      <span class="d">마이크로 들려주거나 녹음 파일을 열면 소리의 길고 짧음을 재서 글자로 바꿉니다.</span></li>
+    <li><b>모스부호를 배우고 외울 때</b>
+      <span class="d">부호표를 눌러 소리로 익히고, 10문제 연습으로 확인하고, <b>두드리기</b>로 직접 쳐 보세요. 글자 사이를 넓게 두는 초보 듣기용 설정도 있습니다.</span></li>
+    <li><b>SOS 같은 신호를 빛으로 보내 보고 싶을 때</b>
+      <span class="d">휴대폰 화면을 깜빡이거나(화면 빛), 안드로이드 크롬이라면 뒷면 <b>손전등</b>으로 보낼 수 있습니다. 반복을 켜면 멈출 때까지 계속 보냅니다.</span></li>
+  </ul>
+</section>
+
+<section class="card">
+  <h2><span>한글 모스부호는 이렇게 만듭니다</span></h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>경우</th><th>예</th><th>보내는 순서</th><th>부호</th></tr></thead>
+      <tbody>
+        <tr><td><b>기본 자모</b></td><td>가</td><td>ㄱ ㅏ</td><td><code>.-.. .</code></td></tr>
+        <tr><td><b>받침</b></td><td>강</td><td>ㄱ ㅏ ㅇ (받침도 자음 부호 그대로)</td><td><code>.-.. . -.-</code></td></tr>
+        <tr><td><b>쌍자음</b></td><td>까</td><td>ㄱ ㄱ ㅏ (같은 자음 두 번)</td><td><code>.-.. .-.. .</code></td></tr>
+        <tr><td><b>겹받침</b></td><td>닭</td><td>ㄷ ㅏ ㄹ ㄱ</td><td><code>-... . ...- .-..</code></td></tr>
+        <tr><td><b>겹모음</b></td><td>와</td><td>ㅇ ㅗ ㅏ (ㅘ = ㅗ+ㅏ)</td><td><code>-.- .- .</code></td></tr>
+        <tr><td><b>ㅒ · ㅖ</b></td><td>얘</td><td>ㅇ ㅑ ㅣ (ㅒ = ㅑ+ㅣ)</td><td><code>-.- .. ..-</code></td></tr>
+        <tr><td><b>띄어쓰기</b></td><td>안녕 하세요</td><td>단어 사이를 길게 쉰다 · 글로 쓸 때는 <b>/</b></td><td><code>… / …</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small">한글은 글자(음절)가 아니라 <b>자음·모음 하나하나</b>를 보냅니다. 그래서 받은 부호를 되돌릴 때 「각기」와 「가끼」처럼 두 가지로 읽히는 곳이 생기는데, 이 도구는 우리말에서 <b>더 자주 쓰는 글자 조합</b>을 골라 되살립니다.</p>
+</section>
+
+<section class="card">
+  <h2><span>자주 묻는 질문</span></h2>
+
+  <details class="faq">
+    <summary>모스부호를 넣었는데 이상한 한글(또는 영어)이 나와요</summary>
+    <p>같은 점·선이 한글 자모와 영어 알파벳에 모두 배정되어 있어서, 부호만 보고는 어느 쪽인지 알 수 없습니다. 이 도구는 <b>두 방식으로 모두 읽어 보고</b> 말이 되는 쪽을 먼저 보여 줍니다. 결과 위의 <b>한글로 / 영문으로</b>를 눌러 직접 바꿀 수 있고, 결과 아래에는 다른 방식으로 읽은 내용도 함께 적어 둡니다.</p>
+  </details>
+
+  <details class="faq">
+    <summary>글자와 글자, 단어와 단어는 어떻게 구분해 적나요?</summary>
+    <p>글자(부호) 사이는 <b>띄어쓰기 한 칸</b>, 단어 사이는 <b>/</b>(슬래시)로 적는 것이 가장 널리 쓰입니다. 이 도구는 <code>·</code> <code>•</code> <code>−</code> <code>_</code> 같은 다른 점·선 기호와, <code>/</code> 대신 <code>|</code>나 두 칸 이상 띄운 경우도 알아서 읽습니다. 「돈쓰」 표기(돈=점, 쓰=선)도 됩니다.</p>
+  </details>
+
+  <details class="faq">
+    <summary>SOS는 왜 부호를 붙여 쓰나요?</summary>
+    <p>조난 신호 SOS는 원래 S·O·S 세 글자가 아니라 <b>하나로 이어 보내는 신호</b>(<code>...---...</code>)입니다. 이 도구는 글자 사이를 띄운 <code>... --- ...</code>로 바꿔 주지만, 붙인 <code>...---...</code>를 넣어도 SOS로 읽습니다. 실제 조난 상황에서는 모스부호보다 <b>112·119 신고</b>가 먼저입니다.</p>
+  </details>
+
+  <details class="faq">
+    <summary>빠르기(분당 단어 수)는 무엇인가요?</summary>
+    <p>「PARIS」라는 단어를 1분에 몇 번 보낼 수 있는 빠르기인지를 뜻합니다. 점 하나의 길이가 <b>1.2초 ÷ 빠르기</b>라서 15이면 점 80ms, 선은 점의 3배, 글자 사이는 3배, 단어 사이는 7배를 쉽니다. 처음 들을 때는 10~13 정도에 <b>글자 사이를 넓게</b>를 켜면 알아듣기 쉽습니다.</p>
+  </details>
+
+  <details class="faq">
+    <summary>손전등·진동이 안 켜져요</summary>
+    <p>웹페이지에서 손전등을 켜는 기능은 <b>안드로이드 크롬</b>에서만 됩니다(카메라 허용 필요). 아이폰 사파리와 PC에는 이 기능이 없어 <b>화면 빛</b>을 쓰세요. 진동도 안드로이드에서만 되고, 아이폰은 웹페이지 진동을 막아 둡니다. 네이버·카카오톡 앱 안에서 연 화면은 카메라가 막혀 있는 경우가 많으니 크롬에서 열어 주세요.</p>
+  </details>
+
+  <details class="faq">
+    <summary>소리 해독이 잘 안 돼요</summary>
+    <p>① <b>한 가지 높이의 삐― 소리</b>여야 합니다(음악·말소리가 섞이면 어렵습니다). ② 너무 빠른 부호(분당 30단어 이상)나 사람이 손으로 친 들쭉날쭉한 부호는 틀리기 쉽습니다. ③ 마이크보다 <b>녹음 파일</b>을 열면 처음부터 끝까지 한 번에 재서 더 정확합니다. ④ 휴대폰은 스피커에 가까이 대고, 주변 소음을 줄여 주세요.</p>
+  </details>
+
+  <details class="faq">
+    <summary>저장한 소리 파일은 어디에 쓰나요?</summary>
+    <p>WAV는 거의 모든 기기에서 열리는 소리 파일입니다. 메신저에 파일로 보내거나 영상 편집 앱에 넣어 효과음으로 쓸 수 있습니다. 앞뒤에 0.5초씩 조용한 부분을 넣어 두었습니다.</p>
+  </details>
+
+  <details class="faq">
+    <summary>입력한 내용은 어디에 저장되나요?</summary>
+    <p>변환·재생·해독은 모두 <b>이 브라우저 안에서만</b> 하고 서버로 보내지 않습니다. 마이크 소리도 기기 안에서 바로 재고 녹음하지 않습니다. 이 브라우저에 남는 것은 빠르기·소리 높이 같은 설정뿐입니다. 「링크로 보내기」는 부호를 주소 끝(# 뒤)에 붙이는 방식이라, 링크를 받은 사람은 그 부호를 볼 수 있습니다.</p>
+  </details>
+</section>
+
+<!-- ══ 주의 문구 ══ -->
+<div class="nbx">
+  <div class="nbx-h"><span class="ic">!</span><span>쓰기 전에 확인하세요</span></div>
+  <ul>
+    <li><b>한글 모스부호의 쌍자음·겹모음은 정해진 부호가 따로 없어</b> 두 자모로 나눠 보내는 관례를 따랐습니다. 받는 쪽이 다른 방식을 쓰면 다르게 읽힐 수 있으니, 중요한 내용은 받은 사람이 제대로 읽었는지 확인하세요.</li>
+    <li><b>해독 결과는 추정입니다.</b> 부호만으로는 한글·영어를 가릴 수 없고, 한글은 받침과 쌍자음이 두 가지로 읽히는 곳이 있어 이 도구가 고른 쪽이 보낸 사람의 뜻과 다를 수 있습니다. 소리 해독은 잡음·빠르기에 따라 틀릴 수 있습니다.</li>
+    <li><b>화면 빛은 빛에 민감한 분께 부담이 될 수 있습니다.</b> 깜빡임이 불편하면 바로 멈추세요. 이 도구는 초당 3번 넘게 깜빡이지 않도록 빠르기를 제한합니다. 소리는 작게 시작하세요.</li>
+    <li><b>실제 조난·위급 상황에서는 이 도구에 기대지 말고 112·119에 먼저 신고하세요.</b> 모스부호 신호는 받는 사람이 알아본다는 보장이 없습니다.</li>
+    <li>입력한 글과 마이크 소리는 기기 안에서만 쓰이며 어디에도 전송되지 않습니다.</li>
+  </ul>
+  <p class="nbx-f">이 도구는 <b>있는 그대로 제공되며</b>, 변환·해독 결과를 믿고 한 판단이나 사용 중 생긴 어떠한 손해에 대해서도 <b>제작자와 운영자는 법적 책임을 지지 않습니다.</b></p>
+</div>
+
+<footer>
+  <b>모스부호 변환기</b> · 설치 없이 브라우저에서<br>
+  국제 모스부호(ITU)와 한글 전신 부호 · 소리는 Web Audio 로 직접 합성 · 외부 라이브러리 없음<br>
+  입력한 글·녹음은 어디에도 전송되지 않으며, 페이지를 연 뒤에는 인터넷 없이도 동작합니다.
+</footer>
+</div>
+
+<!-- 마이크·손전등이 막히는 곳에서 띄우는 창.
+     · 네이버·카카오 앱 안(WebView): 켜려 할 때 먼저 띄운다 — 권한 창 없이 조용히 실패하는 일이 많다
+     · 블로그 글 안에 끼운 화면(iframe)에서 막혀 있을 때: 새 창으로 옮기게 한다
+     변환·소리 재생은 어디서나 되므로 페이지를 처음부터 막지는 않는다 -->
+<div class="iamodal" id="iaModal" role="dialog" aria-modal="true" aria-labelledby="iaTitle">
+  <div class="iasheet">
+    <div class="iaic" id="iaIc">🎤</div>
+    <h2 id="iaTitle">앱 안에서는 마이크가 막힐 수 있습니다</h2>
+    <p class="iap" id="iaDesc"></p>
+    <ol class="iasteps" id="iaSteps"></ol>
+    <button class="iabtn" id="iaGo2" type="button">크롬에서 열기</button>
+    <p class="iafine"><button type="button" id="iaStay">여기서 그냥 해 볼게요</button></p>
+  </div>
+</div>
+
+<!-- 화면 빛 신호 — 사용자가 켠 전체 화면 모드 -->
+<div id="lamp" aria-hidden="true">
+  <button id="lampX" type="button">■ 멈추기</button>
+  <div id="lampTx"></div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+"use strict";
+/* ════════════════════════════════════════════════════════════
+   모스부호 변환기 — 라이브러리 없이 순수 JS
+
+   [부호표]
+     영문·숫자·기호는 국제 모스부호(ITU-R M.1677), 한글은 한글 전신 부호(자음 14 · 모음 12).
+     쌍자음(ㄲ)·겹받침(ㄺ)·겹모음(ㅘ) 은 따로 정해진 부호가 없어 자모 둘로 나눠 보낸다(ㄲ=ㄱㄱ, ㅘ=ㅗㅏ).
+   [한글 되살리기]
+     받은 자모를 음절로 묶을 때 「받침+초성」과 「쌍자음」이 두 가지로 읽힌다(ㄱㅏㄱㄱㅣ = 각기 / 가끼).
+     자모 줄 전체를 두고 동적 계획법으로 「우리말에서 더 자주 쓰는 음절」이 되는 쪽을 고른다.
+     음절 빈도는 한국어 위키백과 요약문 + 한국어 설명글 + 일상 표현에서 센 값을 2의 거듭제곱 단위로 묶은 것(SYLF).
+   [방향]
+     입력이 점·선·띄어쓰기·슬래시로만 되어 있으면 해독, 아니면 부호로 바꾼다.
+     해독은 한글·영문 두 방식으로 모두 읽어 보고, 한글로 읽었을 때 짝 없는 자모가 거의 없으면 한글을 고른다.
+   ════════════════════════════════════════════════════════════ */
+
+/* ── 짧은 도우미 ───────────────────────────────────────── */
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const pad = n => (n < 10 ? '0' : '') + n;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+const perf = () => performance.now();
+let toastT = 0;
+function toast(msg, ms){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), ms || 2800);
+}
+function onScreen(el, m){
+  if (!el || el.classList.contains('hide')) return false;
+  const r = el.getBoundingClientRect(), k = m || 0;
+  return r.height > 0 && r.bottom > k && r.top < window.innerHeight - k;
+}
+function editable(t){ return !!(t && (t.tagName === 'INPUT' && t.type !== 'range' && t.type !== 'checkbox' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)); }
+const UA = navigator.userAgent || '';
+const IS_IOS = /iPhone|iPad|iPod/i.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IS_ANDROID = /Android/i.test(UA);
+const TOUCH_ONLY = window.matchMedia('(hover:none) and (pointer:coarse)').matches;
+const IN_FRAME = window.top !== window.self;
+
+/* ══ 부호표 ══════════════════════════════════════════════ */
+const MORSE_EN = {A: '.-', B: '-...', C: '-.-.', D: '-..', E: '.', F: '..-.', G: '--.', H: '....', I: '..', J: '.---', K: '-.-', L: '.-..', M: '--',
+  N: '-.', O: '---', P: '.--.', Q: '--.-', R: '.-.', S: '...', T: '-', U: '..-', V: '...-', W: '.--', X: '-..-', Y: '-.--', Z: '--..'};
+const MORSE_NUM = {'0': '-----', '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.'};
+const MORSE_SYM = {'.': '.-.-.-', ',': '--..--', '?': '..--..', "'": '.----.', '!': '-.-.--', '/': '-..-.', '(': '-.--.', ')': '-.--.-', '&': '.-...',
+  ':': '---...', ';': '-.-.-.', '=': '-...-', '+': '.-.-.', '-': '-....-', '_': '..--.-', '"': '.-..-.', '$': '...-..-', '@': '.--.-.'};
+/* 한글 전신 부호 — 자음 14 · 모음 12 */
+const MORSE_KO = {'ㄱ': '.-..', 'ㄴ': '..-.', 'ㄷ': '-...', 'ㄹ': '...-', 'ㅁ': '--', 'ㅂ': '.--', 'ㅅ': '--.', 'ㅇ': '-.-', 'ㅈ': '.--.', 'ㅊ': '-.-.',
+  'ㅋ': '-..-', 'ㅌ': '--..', 'ㅍ': '---', 'ㅎ': '.---',
+  'ㅏ': '.', 'ㅑ': '..', 'ㅓ': '-', 'ㅕ': '...', 'ㅗ': '.-', 'ㅛ': '-.', 'ㅜ': '....', 'ㅠ': '.-.', 'ㅡ': '-..', 'ㅣ': '..-', 'ㅐ': '--.-', 'ㅔ': '-.--'};
+/* 붙여 보내는 약속 부호(prosign) — 해독할 때만 쓴다 */
+const PROSIGN = {'...---...': 'SOS', '...-.-': '<SK>', '-.-.-': '<KA>', '...-.': '<SN>', '........': '<정정>'};
+const KO_CONS = 'ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎ';
+const KO_VOWS = 'ㅏㅑㅓㅕㅗㅛㅜㅠㅡㅣㅐㅔ';
+function rev(o){ const r = {}; Object.keys(o).forEach(k => { r[o[k]] = k; }); return r; }
+const R_EN = rev(MORSE_EN), R_NUM = rev(MORSE_NUM), R_SYM = rev(MORSE_SYM), R_KO = rev(MORSE_KO);
+
+/* ── 한글 자모 ── */
+const CHO = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+const JUNG = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
+const JONG = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+/* 부호가 따로 없는 자모 → 기본 자모 둘(셋) */
+const SPLIT = {'ㄲ': 'ㄱㄱ', 'ㄸ': 'ㄷㄷ', 'ㅃ': 'ㅂㅂ', 'ㅆ': 'ㅅㅅ', 'ㅉ': 'ㅈㅈ',
+  'ㄳ': 'ㄱㅅ', 'ㄵ': 'ㄴㅈ', 'ㄶ': 'ㄴㅎ', 'ㄺ': 'ㄹㄱ', 'ㄻ': 'ㄹㅁ', 'ㄼ': 'ㄹㅂ', 'ㄽ': 'ㄹㅅ', 'ㄾ': 'ㄹㅌ', 'ㄿ': 'ㄹㅍ', 'ㅀ': 'ㄹㅎ', 'ㅄ': 'ㅂㅅ',
+  'ㅒ': 'ㅑㅣ', 'ㅖ': 'ㅕㅣ', 'ㅘ': 'ㅗㅏ', 'ㅙ': 'ㅗㅐ', 'ㅚ': 'ㅗㅣ', 'ㅝ': 'ㅜㅓ', 'ㅞ': 'ㅜㅔ', 'ㅟ': 'ㅜㅣ', 'ㅢ': 'ㅡㅣ'};
+/* 되살릴 때 — 모음 줄 → 중성 (ㅏㅣ→ㅐ 처럼 나눠 보낸 것도 받는다) */
+const V_SEQ = {'ㅏ': 'ㅏ', 'ㅑ': 'ㅑ', 'ㅓ': 'ㅓ', 'ㅕ': 'ㅕ', 'ㅗ': 'ㅗ', 'ㅛ': 'ㅛ', 'ㅜ': 'ㅜ', 'ㅠ': 'ㅠ', 'ㅡ': 'ㅡ', 'ㅣ': 'ㅣ', 'ㅐ': 'ㅐ', 'ㅔ': 'ㅔ',
+  'ㅏㅣ': 'ㅐ', 'ㅓㅣ': 'ㅔ', 'ㅑㅣ': 'ㅒ', 'ㅕㅣ': 'ㅖ', 'ㅗㅏ': 'ㅘ', 'ㅗㅐ': 'ㅙ', 'ㅗㅣ': 'ㅚ', 'ㅜㅓ': 'ㅝ', 'ㅜㅔ': 'ㅞ', 'ㅜㅣ': 'ㅟ', 'ㅡㅣ': 'ㅢ',
+  'ㅗㅏㅣ': 'ㅙ', 'ㅜㅓㅣ': 'ㅞ'};
+const C_DBL = {'ㄱ': 'ㄲ', 'ㄷ': 'ㄸ', 'ㅂ': 'ㅃ', 'ㅅ': 'ㅆ', 'ㅈ': 'ㅉ'};
+const J_SEQ = {'ㄱㄱ': 'ㄲ', 'ㄱㅅ': 'ㄳ', 'ㄴㅈ': 'ㄵ', 'ㄴㅎ': 'ㄶ', 'ㄹㄱ': 'ㄺ', 'ㄹㅁ': 'ㄻ', 'ㄹㅂ': 'ㄼ', 'ㄹㅅ': 'ㄽ', 'ㄹㅌ': 'ㄾ', 'ㄹㅍ': 'ㄿ', 'ㄹㅎ': 'ㅀ', 'ㅂㅅ': 'ㅄ', 'ㅅㅅ': 'ㅆ'};
+const isCons = j => KO_CONS.indexOf(j) >= 0;
+
+/* 음절 빈도 — [비용, 음절들]. 비용 = -log2(비율)을 반올림한 값. 적을수록 흔한 음절 */
+const SYLF = [[5,"다이"],[6,"가고기는니로서어에은을의지"],[7,"그나대도라를리만면보사세수스시아요으인일있자하한해"],[8,"게계공과구국글금내년동되드들르마모문미바부상소습안여오와우원월음입장저전정제주진치터트파합화"],[9,"간같개거것경관교까남넣네단데두등때래러레려록며명목무반받발방배버번법복본분브비산생선성식신않알야없었연열영용워위유임작재적조줄중직쪽차처체카칸크표프학할했호회"],[10,"각강건격결군근급끝날노누달당더던돌된됩뒤든디따람랑량력료루른름린림립막말맞매메물민변불붙빠색설셀속손순실쓰액약양억업역였예올운점종좋준증질집짜창초최추축출코키타태테토통티판페편포폰피필함행현형확환후휴히"],[11,"갈감갑값걸검겨골곳광권규긴길깨께꼴난납너넘녹눌늘능담독돼득또란런럼령류릅릴링많머먹먼몇못밀및백베별병북블빨살새석션송쇄숫슬승심싶씩악암압았앞애앱언엑온옮옵완외울율잘잡절접져족줘즈째찍참채책천청총친커컴케켜택투특퍼평폴풀품플항험혼활"],[12,"겠견곧괜귀김깁꺼꼭꾸꿔뀌끄끌끔끼났낸넷녀높놓눈뉴느님답돈될둘떠떤똑뜨뜻락랜램럽렇련례론롬망맨몬몰묻뭐므박밖밥벌범벨벽볼봉봐빈뻐뽑뿐삼섬섯센술싸써쓸씨얼엔왔왕움웨웹육응읽잔잠쟁졌존좌줍찮찾철첫쳐촌충춰취츠층칙칠침캐쿠큰클큼킨탄탈탭톡퇴튼틀팀팔패폭퓨픽향혀황획효흐힌힘"],[13,"갔객걱걷겹겼곁곡곤괴굴굵궁균극긋깔꽃꿈끊끗낮낼냈냐냥널넓념녕농눠닙닫덕덜덴델됐둔듭딩딱딸떡떨떻뜹띄띠랐략럴렉렌렸롤룹률릭릿맡맥멀멈묶밝밤봅봤뷰빌빛빼뽀쁘삐샤섞셈셋솔쇼숙쉬슈슨슷십싱쌓쓴씁씬앤앨엄엇엘옆옛옥왜웁윈윤익졸죄죠죽쥐즉즐짐징짝짧착찬찰첨춘측칭칼캔캡컬컵콘콜탕턴털텔템틴팅폐푸핀허헌헤혁협혹홍훨흔희흰힙"],[14,"갖갚갤갱겁곱곽굿깊깎깜꼬꾼꿀뀝냅넉논놀놈늦닉닌닿덩덮둡둥뒷듀듬듯딕딘땅땐떼뛰랄랍랙랭럭렀렬렵롭룬뤄맣맹멋멸몸묘뮤밑밟밴벡벤볶뷔빙빵뿌삭샀셉셔셨숨쉽싫쌍썼앙얹염옹왼욕웃웅웠융읍잇잉잤잭젤좁줬즌즘짓쯤찌척쳤촬춤춥칩캠콤콩쿄킬킹탁탐탑텍텐튀튜팎팡펙펜풍핏핑핵헝헷홀홈횟훈휘흑흘흥힐"],[15,"겐겪겸괄굳굽귈깃깐깝깥껴꽉꿉꿨낫낭냉넨넬뇌눔눕뉘늬닝닥댓덟덤돗됨둑둬뒀딜딴뗀랫롯롱룡룩륙맘맙맷멕멘멜멤몫몽뭉뮬믹믿밌밍뱀뱃벗벳벼봇뵙붉붕븐빅뺀샌샘셰쇠슐싼썸앉얻엣옴욱웰윌윙잃잎젠짚쩡쪼쫓챔챙첩촉캘컨켰쿨퀴큐큽킷톤톨톰톱툼튕틱틸팩팬펠폼푼헛헨헬혈혔홉훑휠흡"],[16,"갛꺾꼽꽤뀐끈낌낙낱낳녁뉜늄닐닭댄댈돋둠듣딪뚫뚱뜁뜬럿렐렴렷뢰룰룸룽륜릉맑맛멍묵뭘믐밭볍봄붓빗빽뼈뽐뿔삶삽샅샷섭섰섹셜숭숲쉼슛슴쌀쌉쏘쏟쏠얇엉엠엥엶엽옌옷윗잊잰젝좀짤쭉찹찻찼첸첼췄캄캉컫컷켄켈켓켭콧쿰쿼퀘탠탱턱텅톈툰퉁틈펄펑펴펼풋픈햄혐혜훼흙"],[17,"갇갉겉겔괘궐깰꺽껍껏꽂꿍뀔끓낀낄낡낯냄냑넋넌넛놉놨뇨뇽눅뉩늑늠닛닦닮덧돕돛됸땀떴뗄뚜뚝뜩뜸랗랩랴렁렘렛뤼륨릎맬맵맺멩몹뭇뭔뮌밋뱅벅뵈빚빡뺄뺍샹셴셸솜솟숀숏쉐싹쌔쑤씌앗앵얀얄얗얘엮옅옙웬잖젊젬줌쩌쩍쯔찜찢챌쳅촘촨칫칵컸켠켤콥콰쾌쿡쿤퀸킴킵탓텀툴튐틍팁팜팝팽펀펌펫풉핫햇헐홋횡훔흉흠흩"],[18,"갓곶궤깍깬껑꼈꾹꿰뀜낚넙녔녜놔눗눴늡늪댕덱뎀듈듦딤딥땄뛴뜯뜰랏랬룻뤘륀륵릇맏멧뭅뮈믈밈밸벰볏빕뺐뻔뼘쁜쁠삿샬샵섀셌쉴슭싣쌈썬쏙쏴쑹씹엌엎엿옐왈웍윳읊잦잽젖젯쥬짙쩔챈챕캅켐콕퀀큉킥탤튿팟팻펩픕핸헵횃훙휩"],[19,"갠갸겅곰귤긁꼰꼼꽝끕끽낵넝넴넸녘댁댐뎬뒬뗍똥뚤뛸띔띤랠랼룔륩묄뭍밧뱉뱌볕뷘뷸뺌뻗뽕뿜쁨삯샐샛섣솅쇤숯슌싯썩쏨쓱씀씽앳얕옇왓왠욜웡윔잴잼쟈좡짭짱쨩찔쳇촙췌췬츄츨캰콴쾨퀵큔큘탸텟텨툭툽튄틉팃팍팠팰퍄펨폽퓐퓰픔핼햐헥헴헹훗"],[20,"갬갭갯갰걀굶깹깼껌껐낍넜놋뉠뉨늙닳덥딛딧땋띕렙맸벱붑뺏뻑샙쉰쌌썽쏩씻얽잣잿쟀줏짖짰찧탬탰텼튠풂"]];
+const SYLCOST = {};
+SYLF.forEach(([q, s]) => { for (const ch of s) SYLCOST[ch] = q; });
+const COST_UNSEEN = 23, COST_ORPHAN = 34;
+const sylCost = s => SYLCOST[s] || COST_UNSEEN;
+
+function composeSyl(cho, jung, jong){
+  return String.fromCharCode(0xAC00 + (CHO.indexOf(cho) * 21 + JUNG.indexOf(jung)) * 28 + JONG.indexOf(jong || ''));
+}
+/* 자모 줄 → 음절들. 반환: [{s: '각', a: 0, b: 3, orphan: false, rare: false}] — a~b 는 자모 줄의 자리 */
+function kCompose(js){
+  const n = js.length, INF = 1e9, dp = new Array(n + 1).fill(INF), bk = new Array(n + 1);
+  dp[0] = 0;
+  const relax = (to, c, it) => { if (c < dp[to]) { dp[to] = c; bk[to] = it; } };
+  for (let i = 0; i < n; i++) {
+    if (dp[i] >= INF) continue;
+    relax(i + 1, dp[i] + COST_ORPHAN, {s: js[i], a: i, b: i + 1, orphan: true});
+    if (!isCons(js[i])) continue;
+    for (let cl = 1; cl <= 2; cl++) {
+      let cho = js[i];
+      if (cl === 2) { if (js[i + 1] !== js[i] || !C_DBL[js[i]]) continue; cho = C_DBL[js[i]]; }
+      const vs = i + cl;
+      for (let vl = 1; vl <= 3 && vs + vl <= n; vl++) {
+        const jung = V_SEQ[js.slice(vs, vs + vl).join('')];
+        if (!jung) break;
+        const e = vs + vl;
+        const put = (jong, to) => { const s = composeSyl(cho, jung, jong); const c = sylCost(s); relax(to, dp[i] + c, {s, a: i, b: to, orphan: false, rare: c >= COST_UNSEEN}); };
+        put('', e);
+        if (e < n && isCons(js[e])) put(js[e], e + 1);
+        if (e + 1 < n && J_SEQ[js[e] + js[e + 1]]) put(J_SEQ[js[e] + js[e + 1]], e + 2);
+      }
+    }
+  }
+  const out = [];
+  for (let p = n; p > 0; p = bk[p].a) out.unshift(bk[p]);
+  return out;
+}
+
+/* ── 글자 → 부호 ───────────────────────────────────────── */
+function normText(s){
+  let o = '';
+  for (const ch of String(s).normalize('NFC')) {
+    const c = ch.codePointAt(0);
+    if (c >= 0xFF01 && c <= 0xFF5E) o += String.fromCharCode(c - 0xFEE0);   /* 전각 → 반각 */
+    else if (c === 0x3000) o += ' ';
+    else if (c === 0x201C || c === 0x201D) o += '"';
+    else if (c === 0x2018 || c === 0x2019) o += "'";
+    else if (c === 0x2026) o += '...';
+    else o += ch;
+  }
+  return o;
+}
+function jamoParts(j){
+  const s = SPLIT[j] || j, out = [];
+  for (const x of s) { if (!MORSE_KO[x]) return null; out.push({j: x, c: MORSE_KO[x]}); }
+  return out;
+}
+/* 글자 하나 → [{j, c}] (한글 음절은 자모 여럿) · 부호가 없으면 null */
+function charParts(ch){
+  const c = ch.codePointAt(0);
+  if (c >= 0xAC00 && c <= 0xD7A3) {
+    const k = c - 0xAC00, cho = CHO[Math.floor(k / 588)], jung = JUNG[Math.floor(k % 588 / 28)], jong = JONG[k % 28];
+    const p = [].concat(jamoParts(cho), jamoParts(jung), jong ? jamoParts(jong) : []);
+    return {ko: true, list: p};
+  }
+  if (c >= 0x3131 && c <= 0x3163) { const p = jamoParts(ch); return p ? {ko: true, list: p} : null; }
+  const up = ch.toUpperCase();
+  if (MORSE_EN[up] && up.length === 1) return {en: true, list: [{j: up, c: MORSE_EN[up]}]};
+  if (MORSE_NUM[ch]) return {list: [{j: ch, c: MORSE_NUM[ch]}]};
+  if (MORSE_SYM[ch]) return {list: [{j: ch, c: MORSE_SYM[ch]}]};
+  return null;
+}
+/* 반환: {groups: [{label, codes: [{c, j}]} | {sp: true}], unk: Map, ko, en} */
+function encodeText(text){
+  const groups = [], unk = new Map();
+  let ko = 0, en = 0;
+  for (const ch of normText(text)) {
+    if (/\s/.test(ch)) { if (groups.length && !groups[groups.length - 1].sp) groups.push({sp: true}); continue; }
+    const p = charParts(ch);
+    if (!p) { unk.set(ch, (unk.get(ch) || 0) + 1); continue; }
+    if (p.ko) ko++; else if (p.en) en++;
+    groups.push({label: ch, codes: p.list});
+  }
+  while (groups.length && groups[groups.length - 1].sp) groups.pop();
+  return {groups, unk, ko, en};
+}
+
+/* ── 부호 → 글자 ───────────────────────────────────────── */
+const DOT_CH = '.·•∙⋅・*', DASH_CH = '-−–—_ー‐';
+function isMorseInput(s){
+  const t = normText(s).trim();
+  if (!t) return false;
+  let sig = 0;
+  for (const ch of t) {
+    if (DOT_CH.indexOf(ch) >= 0 || DASH_CH.indexOf(ch) >= 0 || ch === '돈' || ch === '쓰') { sig++; continue; }
+    if (/\s/.test(ch) || ch === '/' || ch === '|' || ch === '\\') continue;
+    return false;
+  }
+  return sig > 0;
+}
+/* 모스부호 글 → [[부호, 부호…](단어), …] */
+function parseMorse(s){
+  let t = normText(s);
+  let o = '';
+  for (const ch of t) {
+    if (DOT_CH.indexOf(ch) >= 0 || ch === '돈') o += '.';
+    else if (DASH_CH.indexOf(ch) >= 0 || ch === '쓰') o += '-';
+    else if (ch === '|' || ch === '\\') o += '/';
+    else if (ch === '\n' || ch === '\r') o += '\n';
+    else if (/\s/.test(ch)) o += ' ';
+    else o += ch;
+  }
+  /* 「돈돈돈쓰쓰쓰」처럼 띄우지 않은 돈쓰 표기는 그대로 한 부호가 된다 */
+  const hasSlash = o.indexOf('/') >= 0;
+  const words = (hasSlash ? o.split(/[\/\n]+/) : o.split(/\n+| {2,}/))
+    .map(w => w.trim().split(/ +/).filter(Boolean)).filter(w => w.length);
+  return words;
+}
+/* 한 방식으로 읽기 — mode 'en' | 'ko'. 반환: {groups, bad, orph, rare, jamo, syl} */
+function readWords(words, mode){
+  const groups = [];
+  let bad = 0, orph = 0, rare = 0, jamo = 0, syl = 0;
+  words.forEach((w, wi) => {
+    if (wi) groups.push({sp: true});
+    if (mode === 'en') {
+      w.forEach(c => {
+        const ch = R_EN[c] || R_NUM[c] || R_SYM[c] || PROSIGN[c];
+        if (!ch) bad++;
+        groups.push({label: ch || '□', bad: !ch, codes: [{c, j: ch || '?'}]});
+      });
+      return;
+    }
+    /* 한글 — 자모가 이어지는 구간은 음절로 묶고, 숫자·기호는 그대로 */
+    let run = [];
+    const flush = () => {
+      if (!run.length) return;
+      const js = run.map(r => r.j);
+      jamo += js.length;
+      kCompose(js).forEach(it => {
+        if (it.orphan) orph++; else { syl++; if (it.rare) rare++; }
+        groups.push({label: it.s, orphan: it.orphan, codes: run.slice(it.a, it.b)});
+      });
+      run = [];
+    };
+    w.forEach(c => {
+      if (R_KO[c]) { run.push({c, j: R_KO[c]}); return; }
+      flush();
+      const ch = R_NUM[c] || R_SYM[c] || PROSIGN[c];
+      if (!ch) bad++;
+      groups.push({label: ch || '□', bad: !ch, codes: [{c, j: ch || '?'}]});
+    });
+    flush();
+  });
+  return {groups, bad, orph, rare, jamo, syl};
+}
+/* 한글로 읽었을 때 짝 없는 자모·처음 보는 음절이 적으면 한글 */
+function looksKorean(k){
+  if (k.jamo < 2) return false;
+  const badness = k.orph + k.rare * 0.6;
+  return badness / Math.max(1, k.syl + k.orph) <= 0.2;
+}
+function decodeMorse(s, mode){
+  const words = parseMorse(s);
+  const en = readWords(words, 'en'), ko = readWords(words, 'ko');
+  const auto = looksKorean(ko) ? 'ko' : 'en';
+  const use = mode === 'ko' || mode === 'en' ? mode : auto;
+  return {words, en, ko, auto, use, res: use === 'ko' ? ko : en};
+}
+const groupsText = gs => gs.map(g => g.sp ? ' ' : g.label).join('');
+/* 부호 글로 — style 'ascii'(. -) | 'dot'(· −) */
+function morseString(groups, style){
+  const d = style === 'dot' ? '·' : '.', h = style === 'dot' ? '−' : '-';
+  return groups.map(g => g.sp ? '/' : g.codes.map(x => x.c).join(' ')).join(' ').replace(/\./g, d).replace(/-/g, h);
+}
+const toStyle = (code, style) => style === 'dot' ? code.replace(/\./g, '·').replace(/-/g, '−') : code;
+</script>
+<script>
+"use strict";
+/* ════════════════════════════════════════════════════════════
+   보내기 — 소리(Web Audio) · 화면 빛 · 손전등 · 진동 · WAV · 이미지 카드
+     점 1 · 선 3 · 부호 안 쉼 1 · 글자 사이 3 · 단어 사이 7 (단위 = 1.2초 ÷ 분당 단어 수)
+     「글자 사이를 넓게」는 파른스워스 방식 — 부호는 그 빠르기 그대로, 글자·단어 사이만 늘려
+     평균 빠르기를 60% 로 낮춘다(외울 때 부호 모양은 제 빠르기로 들어야 해서).
+   ════════════════════════════════════════════════════════════ */
+const LIGHT_MAX_WPM = 7;   /* 빛 신호 상한 — 점+쉼 ≥ 0.34초라 초당 3번을 넘게 깜빡이지 않는다 */
+
+function unitSec(wpm){ return 1.2 / wpm; }
+function gapUnit(wpm, farns){
+  if (!farns) return unitSec(wpm);
+  const c = wpm, e = Math.max(4, c * 0.6);
+  const ta = (60 * c - 37.2 * e) / (c * e);   /* 표준 단어(PARIS)의 쉼 19단위에 나눠 줄 시간 */
+  return Math.max(unitSec(wpm), ta / 19);
+}
+/* 그룹들 → 시간표. ev: [{t0, t1, k(부호 번호), g(그룹 번호)}], total(초) */
+function buildTimeline(groups, wpm, farns){
+  const u = unitSec(wpm), fu = gapUnit(wpm, farns), ev = [];
+  let t = 0, first = true, word = false, k = -1;
+  groups.forEach((g, gi) => {
+    if (g.sp) { word = true; return; }
+    g.codes.forEach(x => {
+      k++;
+      if (!first) t += (word ? 7 : 3) * fu;
+      first = false; word = false;
+      for (let i = 0; i < x.c.length; i++) {
+        if (i) t += u;
+        const d = x.c[i] === '-' ? 3 * u : u;
+        ev.push({t0: t, t1: t + d, k, g: gi});
+        t += d;
+      }
+    });
+  });
+  return {ev, total: t, tail: 7 * fu, codes: k + 1};
+}
+
+/* ── 소리 ── */
+let AC = null, master = null;
+function ac(){
+  if (!AC) {
+    const C = window.AudioContext || window.webkitAudioContext;
+    AC = new C();
+    master = AC.createGain(); master.gain.value = volGain(); master.connect(AC.destination);
+  }
+  if (AC.state === 'suspended') AC.resume();
+  return AC;
+}
+function volGain(){ return Math.pow(S.vol / 100, 1.6) * 0.55; }
+/* 시간표를 오디오 시계에 한꺼번에 예약한다 — 탭이 가려져도 소리 박자는 밀리지 않는다 */
+function scheduleTone(tl, at, hz){
+  const ctx = ac(), osc = ctx.createOscillator(), g = ctx.createGain();
+  osc.type = 'sine'; osc.frequency.value = hz;
+  g.gain.value = 0; osc.connect(g); g.connect(master);
+  const r = 0.005;
+  tl.ev.forEach(e => {
+    const a = at + e.t0, b = at + e.t1;
+    g.gain.setValueAtTime(0, a);
+    g.gain.linearRampToValueAtTime(1, a + r);
+    g.gain.setValueAtTime(1, Math.max(a + r, b - r));
+    g.gain.linearRampToValueAtTime(0, b);
+  });
+  osc.start(at); osc.stop(at + tl.total + 0.05);
+  return {osc, g};
+}
+/* 짧은 부호 하나(부호표·연습) */
+function playCode(code, wpm){
+  stopPlay();
+  const tl = buildTimeline([{codes: [{c: code}]}], wpm || Math.max(12, S.wpm), false);
+  const ctx = ac();
+  if (SHORT.n) { try { SHORT.n.osc.stop(); } catch (e) { /* 이미 멈춤 */ } }
+  SHORT.n = scheduleTone(tl, ctx.currentTime + 0.03, S.hz);
+  return tl.total;
+}
+const SHORT = {n: null};
+/* 누르는 동안 나는 소리(두드리기) */
+const SIDE = {osc: null, g: null};
+function sideOn(){
+  const ctx = ac();
+  if (!SIDE.osc) {
+    SIDE.osc = ctx.createOscillator(); SIDE.g = ctx.createGain();
+    SIDE.osc.type = 'sine'; SIDE.osc.frequency.value = S.hz; SIDE.g.gain.value = 0;
+    SIDE.osc.connect(SIDE.g); SIDE.g.connect(master); SIDE.osc.start();
+  }
+  SIDE.osc.frequency.setValueAtTime(S.hz, ctx.currentTime);
+  SIDE.g.gain.cancelScheduledValues(ctx.currentTime);
+  SIDE.g.gain.setTargetAtTime(1, ctx.currentTime, 0.003);
+}
+function sideOff(){ if (SIDE.g && AC) { SIDE.g.gain.cancelScheduledValues(AC.currentTime); SIDE.g.gain.setTargetAtTime(0, AC.currentTime, 0.004); } }
+
+/* ── 손전등 (안드로이드 크롬 · 뒷면 카메라 track 의 torch) ── */
+const TORCH_OK = IS_ANDROID && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+const VIB_OK = IS_ANDROID && typeof navigator.vibrate === 'function';
+const TORCH = {track: null, on: false};
+async function torchStart(){
+  if (TORCH.track) return true;
+  const st = await navigator.mediaDevices.getUserMedia({video: {facingMode: {ideal: 'environment'}}, audio: false});
+  const tr = st.getVideoTracks()[0];
+  const caps = tr && tr.getCapabilities ? tr.getCapabilities() : {};
+  if (!tr || !caps.torch) { st.getTracks().forEach(x => x.stop()); const e = new Error('notorch'); e.name = 'NoTorch'; throw e; }
+  TORCH.track = tr; TORCH.on = false;
+  return true;
+}
+function torchSet(on){
+  if (!TORCH.track || TORCH.on === on) return;
+  TORCH.on = on;
+  TORCH.track.applyConstraints({advanced: [{torch: on}]}).catch(() => { /* 무시 */ });
+}
+function torchStop(){ if (TORCH.track) { try { TORCH.track.applyConstraints({advanced: [{torch: false}]}); } catch (e) { /* 무시 */ } TORCH.track.stop(); TORCH.track = null; TORCH.on = false; } }
+
+/* ── 재생 ── 소리는 오디오 시계, 빛·진동·강조 표시는 rAF 로 같은 시간표를 따라간다 */
+const P = {on: false, tl: null, t0: 0, clock: 'perf', tone: null, raf: 0, idx: 0, lit: false, cycle: 0, vibT: [], outs: null, wpm: 0};
+function pNow(){ return P.clock === 'audio' && AC ? AC.currentTime : perf() / 1000; }
+function startPlay(){
+  if (!PLAN.groups.length) { toast('먼저 위 칸에 글자나 모스부호를 넣으세요'); return; }
+  const o = Object.assign({}, S.outs);
+  if (!o.snd && !o.scr && !o.torch && !o.vib) { toast('소리·화면 빛·손전등·진동 중 하나 이상을 골라 주세요'); return; }
+  let wpm = S.wpm;
+  if ((o.scr || o.torch) && wpm > LIGHT_MAX_WPM) { wpm = LIGHT_MAX_WPM; toast('빛 신호는 눈을 위해 분당 ' + LIGHT_MAX_WPM + '단어로 늦춰 보냅니다'); }
+  const tl = buildTimeline(PLAN.groups, wpm, S.farns);
+  if (tl.total > 900) { toast('15분이 넘는 길이는 보낼 수 없어요. 글을 나눠 주세요.'); return; }
+  stopPlay(true);
+  P.on = true; P.tl = tl; P.outs = o; P.wpm = wpm; P.cycle = 0;
+  if (o.scr) lampOpen();
+  if (o.torch && !TORCH.track) { toast('손전등이 켜지지 않았어요'); o.torch = false; }
+  if (o.snd) { ac(); P.clock = 'audio'; P.wdA = -1; P.wdP = perf() / 1000; } else P.clock = 'perf';
+  beginCycle(pNow() + 0.08);
+  $('playBtn').textContent = '■ 멈추기'; $('playBtn').classList.add('stop');
+  $('sendPill').className = 'pill run'; $('sendPill').textContent = '보내는 중';
+  if (!P.raf) P.raf = requestAnimationFrame(tick);
+}
+function beginCycle(at){
+  P.t0 = at; P.idx = 0;
+  if (P.outs.snd) P.tone = scheduleTone(P.tl, at, S.hz);
+  if (P.outs.vib) vibSchedule(P.tl, (at - pNow()) * 1000);
+}
+/* 진동 — 한 번에 넘길 수 있는 패턴 길이에 한계가 있어 90칸씩 끊어 제시각에 건다 */
+function vibSchedule(tl, delayMs){
+  P.vibT.forEach(clearTimeout); P.vibT = [];
+  let pat = [], chunkStart = 0, last = 0;
+  const flush = () => { if (!pat.length) return; const p = pat.slice(), at = chunkStart; P.vibT.push(setTimeout(() => { try { navigator.vibrate(p); } catch (e) { /* 무시 */ } }, Math.max(0, delayMs + at))); pat = []; };
+  tl.ev.forEach(e => {
+    const s = e.t0 * 1000, d = (e.t1 - e.t0) * 1000;
+    if (!pat.length) { chunkStart = s; last = s; }
+    else pat.push(Math.round(s - last));
+    pat.push(Math.round(d)); last = s + d;
+    if (pat.length >= 89) flush();
+  });
+  flush();
+}
+function tick(){
+  P.raf = 0;
+  if (!P.on) return;
+  /* 오디오 시계가 멈춰 있으면(소리 장치가 없거나 브라우저가 소리를 막음) 화면 시계로 넘어간다 — 안 그러면 영영 안 끝난다 */
+  if (P.clock === 'audio') {
+    const at = AC.currentTime, pt = perf() / 1000;
+    if (P.wdA !== at) { P.wdA = at; P.wdP = pt; }
+    else if (pt - P.wdP > 0.6) { P.clock = 'perf'; P.t0 = pt - (at - P.t0) - 0.6; toast('소리가 나지 않는 상태예요. 기기 소리·무음 모드를 확인하세요', 3200); }
+  }
+  const tl = P.tl, cur = pNow() - P.t0;
+  while (P.idx < tl.ev.length && tl.ev[P.idx].t1 <= cur) P.idx++;
+  const e = tl.ev[P.idx];
+  const lit = !!(e && cur >= e.t0 && cur < e.t1);
+  if (lit !== P.lit) {
+    P.lit = lit;
+    $('lampDot').classList.toggle('on', lit);
+    if (P.outs.scr) $('lamp').classList.toggle('lit', lit);
+    if (P.outs.torch) torchSet(lit);
+  }
+  const ce = e || tl.ev[tl.ev.length - 1];
+  if (ce) markPlaying(ce.g, ce.k);
+  $('playMeter').style.width = clamp(cur / tl.total * 100, 0, 100) + '%';
+  /* 반복이면 끝나자마자 다음 바퀴를 단어 사이만큼 뒤에 미리 예약한다(오디오 시계는 과거 시각을 받지 않는다) */
+  if (cur >= tl.total) {
+    if (S.loop) { P.cycle++; beginCycle(P.t0 + tl.total + tl.tail); }
+    else if (cur >= tl.total + 0.15) { stopPlay(); return; }
+  }
+  P.raf = requestAnimationFrame(tick);
+}
+function stopPlay(quiet){
+  if (P.tone) { try { P.tone.g.gain.cancelScheduledValues(0); P.tone.g.gain.value = 0; P.tone.osc.stop(); } catch (e) { /* 이미 멈춤 */ } P.tone = null; }
+  P.vibT.forEach(clearTimeout); P.vibT = [];
+  if (VIB_OK && P.outs && P.outs.vib) { try { navigator.vibrate(0); } catch (e) { /* 무시 */ } }
+  if (P.raf) { cancelAnimationFrame(P.raf); P.raf = 0; }
+  const was = P.on;
+  P.on = false; P.lit = false;
+  torchSet(false);
+  $('lampDot').classList.remove('on');
+  lampClose();
+  markPlaying(-1, -1);
+  $('playMeter').style.width = '0';
+  $('playBtn').textContent = '▶ 보내기'; $('playBtn').classList.remove('stop');
+  $('sendPill').className = 'pill idle'; $('sendPill').textContent = '변환 결과';
+}
+function lampOpen(){
+  $('lamp').classList.add('on'); $('lamp').classList.remove('lit');
+  document.body.classList.add('lampon');
+  $('lampTx').textContent = (PLAN.plain || '').slice(0, 40) + ' · 분당 ' + LIGHT_MAX_WPM + '단어';
+  const el = document.documentElement;
+  try { const f = el.requestFullscreen || el.webkitRequestFullscreen; if (f && !IS_IOS) { const r = f.call(el); if (r && r.catch) r.catch(() => {}); } } catch (e) { /* 무시 */ }
+  requestWake();
+}
+function lampClose(){
+  if (!$('lamp').classList.contains('on')) return;
+  $('lamp').classList.remove('on', 'lit');
+  document.body.classList.remove('lampon');
+  try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); } catch (e) { /* 무시 */ }
+  releaseWake();
+}
+/* 빛 신호 중에는 화면이 꺼지지 않게 */
+let WAKE = null;
+function requestWake(){ try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(w => { WAKE = w; }).catch(() => {}); } catch (e) { /* 무시 */ } }
+function releaseWake(){ try { if (WAKE) WAKE.release(); } catch (e) { /* 무시 */ } WAKE = null; }
+
+/* ── WAV ── 22.05kHz · 16비트 · 모노, 앞뒤 0.5초 무음, 소리 앞뒤 5ms 부드럽게 */
+function makeWav(groups, wpm, hz, farns){
+  const tl = buildTimeline(groups, wpm, farns), sr = 22050, lead = 0.5;
+  const n = Math.ceil((tl.total + 2 * lead) * sr);
+  const buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  w(36, 'data'); v.setUint32(40, n * 2, true);
+  const amp = 0.62 * 32767 * Math.min(1, S.vol / 60 + 0.2), r = Math.round(0.005 * sr), wf = 2 * Math.PI * hz / sr;
+  tl.ev.forEach(e => {
+    const a = Math.round((lead + e.t0) * sr), b = Math.round((lead + e.t1) * sr);
+    for (let i = a; i < b; i++) {
+      const d1 = i - a, d2 = b - 1 - i;
+      const env = d1 < r ? 0.5 - 0.5 * Math.cos(Math.PI * d1 / r) : d2 < r ? 0.5 - 0.5 * Math.cos(Math.PI * d2 / r) : 1;
+      v.setInt16(44 + i * 2, Math.round(clamp(amp, 0, 32767) * env * Math.sin(wf * (i - a))), true);
+    }
+  });
+  return {blob: new Blob([buf], {type: 'audio/wav'}), sec: tl.total + 2 * lead};
+}
+
+/* ── 이미지 카드 ── 부호를 점·막대 그림으로. 원래 글자는 넣거나 뺄 수 있다(고백·수수께끼용) */
+const FONT = '"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif';
+function cardCanvas(groups, plain, showText){
+  const W = 1200, P = 70, maxW = W - P * 2;
+  const DOT = 14, DASH = 38, H = 14, SG = 9, CG = 24, GG = 40, WG = 76, LABEL = showText ? 46 : 0, LINE = 52 + LABEL;
+  /* 그룹 폭 */
+  const gw = g => g.codes.reduce((s, x, i) => s + (i ? CG : 0) + x.c.split('').reduce((a, ch, j) => a + (j ? SG : 0) + (ch === '-' ? DASH : DOT), 0), 0);
+  /* 줄 나누기 — 단어는 가능한 한 한 줄에 */
+  const words = []; let cur = [];
+  groups.forEach(g => { if (g.sp) { if (cur.length) words.push(cur); cur = []; } else cur.push(g); });
+  if (cur.length) words.push(cur);
+  const lines = []; let line = [], lw = 0;
+  const brk = () => { if (line.length) lines.push(line); line = []; lw = 0; };
+  words.forEach(wd => {
+    const ww = wd.reduce((s, g, i) => s + (i ? GG : 0) + gw(g), 0);
+    if (line.length && lw + WG + ww > maxW && ww <= maxW) brk();   /* 단어는 되도록 한 줄에 */
+    wd.forEach((g, i) => {
+      const x = gw(g), gap = line.length ? (i === 0 ? WG : GG) : 0;
+      if (line.length && lw + gap + x > maxW) brk();   /* 한 줄보다 긴 단어는 그룹 단위로 자른다 */
+      const gp = line.length ? gap : 0;
+      line.push({g, gap: gp}); lw += gp + x;
+    });
+  });
+  brk();
+  const titleH = showText && plain ? 150 : 90;
+  const Hc = Math.max(560, P + titleH + lines.length * LINE + 90);
+  const c = document.createElement('canvas'); c.width = W; c.height = Hc;
+  const x = c.getContext('2d');
+  const bg = x.createLinearGradient(0, 0, W, Hc); bg.addColorStop(0, '#1d140f'); bg.addColorStop(1, '#2b1a10');
+  x.fillStyle = bg; x.fillRect(0, 0, W, Hc);
+  x.fillStyle = '#fb923c'; x.font = '800 26px ' + FONT; x.textBaseline = 'alphabetic';
+  x.fillText('MORSE CODE · 모스부호', P, P + 20);
+  let y = P + 40;
+  if (showText && plain) {
+    x.fillStyle = '#fff4ea'; x.font = '800 50px ' + FONT;
+    let t = plain; while (x.measureText(t).width > maxW && t.length > 1) t = t.slice(0, -1);
+    if (t !== plain) t = t.slice(0, -1) + '…';
+    x.fillText(t, P, y + 60); y += 90;
+  } else y += 20;
+  y += 30;
+  lines.forEach(ln => {
+    const tw = ln.reduce((s, it) => s + it.gap + gw(it.g), 0);
+    let px = P + Math.max(0, (maxW - tw) / 2);
+    ln.forEach(it => {
+      px += it.gap;
+      const x0 = px;
+      it.g.codes.forEach((cd, ci) => {
+        if (ci) px += CG;
+        cd.c.split('').forEach((ch, j) => {
+          if (j) px += SG;
+          x.fillStyle = '#fdba74';
+          if (ch === '-') { roundRect(x, px, y, DASH, H, H / 2); px += DASH; }
+          else { x.beginPath(); x.arc(px + DOT / 2, y + H / 2, DOT / 2, 0, Math.PI * 2); x.fill(); px += DOT; }
+        });
+      });
+      if (showText) {
+        x.fillStyle = '#e8d7ca'; x.font = '700 28px ' + FONT; x.textAlign = 'center';
+        x.fillText(it.g.label, (x0 + px) / 2, y + H + 40); x.textAlign = 'left';
+      }
+    });
+    y += LINE;
+  });
+  x.fillStyle = 'rgba(255,244,234,.45)'; x.font = '600 20px ' + FONT;
+  x.fillText('· 점   ▬ 선   │  모스부호 변환기', P, Hc - P + 30);
+  return c;
+}
+function roundRect(x, a, b, w, h, r){
+  x.beginPath(); x.moveTo(a + r, b); x.lineTo(a + w - r, b); x.arcTo(a + w, b, a + w, b + r, r); x.lineTo(a + w, b + h - r);
+  x.arcTo(a + w, b + h, a + w - r, b + h, r); x.lineTo(a + r, b + h); x.arcTo(a, b + h, a, b + h - r, r); x.lineTo(a, b + r); x.arcTo(a, b, a + r, b, r); x.fill();
+}
+</script>
+<script>
+"use strict";
+/* ════════════════════════════════════════════════════════════
+   소리로 해독
+     ① 음높이 찾기 — 4096점 FFT 를 여러 조각에서 더해 250~2500Hz 사이 가장 센 곳(소리가 큰 조각만)
+     ② 세기 곡선 — 그 음높이 하나만 보는 Goertzel 을 10ms 창 · 5ms 간격으로
+     ③ 켜짐/꺼짐 — dB 의 하위 20%(잡음)와 상위 2%(신호) 사이 55%에서 켜고 40%에서 끈다(흔들림 방지)
+     ④ 길이 → 점·선 — 켜진 길이들을 로그 눈금에서 두 무리로 나눠(k-평균) 짧은 쪽을 점으로.
+        꺼진 길이는 부호 안(1)·글자 사이(3)·단어 사이(7) — 글자·단어 사이는 무리가 둘로 갈리면 그 사이에서 자른다
+        (「글자 사이를 넓게」 보낸 소리도 단어가 쪼개지지 않게)
+   녹음 파일은 끝까지 한 번에 재고, 마이크는 들어오는 대로 기준을 고쳐 가며 읽는다.
+   ════════════════════════════════════════════════════════════ */
+function fftMag(re, im){
+  const n = re.length;
+  for (let i = 1, j = 0; i < n; i++) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) { let t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; }
+  }
+  for (let len = 2; len <= n; len <<= 1) {
+    const ang = -2 * Math.PI / len, wr = Math.cos(ang), wi = Math.sin(ang);
+    for (let i = 0; i < n; i += len) {
+      let cr = 1, ci = 0;
+      for (let j = 0; j < len / 2; j++) {
+        const a = i + j, b = a + len / 2;
+        const tr = re[b] * cr - im[b] * ci, ti = re[b] * ci + im[b] * cr;
+        re[b] = re[a] - tr; im[b] = im[a] - ti; re[a] += tr; im[a] += ti;
+        const nr = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = nr;
+      }
+    }
+  }
+  const m = new Float32Array(n / 2);
+  for (let i = 0; i < n / 2; i++) m[i] = re[i] * re[i] + im[i] * im[i];
+  return m;
+}
+const HANN4096 = (() => { const w = new Float32Array(4096); for (let i = 0; i < 4096; i++) w[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / 4095); return w; })();
+function spectrumAt(x, off){
+  const re = new Float32Array(4096), im = new Float32Array(4096);
+  for (let i = 0; i < 4096; i++) re[i] = (x[off + i] || 0) * HANN4096[i];
+  return fftMag(re, im);
+}
+/* 가장 센 음높이(Hz) — 봉우리 옆 두 칸으로 포물선 보간 */
+function peakHz(acc, sr){
+  const lo = Math.floor(250 * 4096 / sr), hi = Math.min(acc.length - 2, Math.ceil(2500 * 4096 / sr));
+  let bi = lo;
+  for (let i = lo; i <= hi; i++) if (acc[i] > acc[bi]) bi = i;
+  const a = acc[bi - 1] || 0, b = acc[bi], c = acc[bi + 1] || 0, d = a - 2 * b + c;
+  const off = d ? 0.5 * (a - c) / d : 0;
+  return {hz: (bi + clamp(off, -0.5, 0.5)) * sr / 4096, bin: bi, pow: b};
+}
+function findTone(x, sr){
+  const hop = 2048, frames = [];
+  const step = Math.max(1, Math.floor((x.length - 4096) / hop / 300));   /* 긴 파일은 최대 300조각만 */
+  for (let f = 0; f + 4096 <= x.length; f += hop * step) {
+    let e = 0; for (let i = f; i < f + 4096; i += 4) e += x[i] * x[i];
+    frames.push({f, e});
+  }
+  if (!frames.length) return null;
+  const es = frames.map(o => o.e).sort((a, b) => a - b), cut = es[Math.floor(es.length * 0.7)];
+  const acc = new Float32Array(2048);
+  frames.forEach(o => { if (o.e >= cut) { const m = spectrumAt(x, o.f); for (let i = 0; i < 2048; i++) acc[i] += m[i]; } });
+  return peakHz(acc, sr);
+}
+/* Goertzel — 한 음높이의 세기(dB)를 hop 마다 */
+function goertzelEnv(x, sr, hz, from, to){
+  const hop = Math.round(sr * 0.005), N = Math.round(sr * 0.010), co = 2 * Math.cos(2 * Math.PI * hz / sr);
+  const out = [];
+  for (let s = from || 0; s + N <= (to || x.length); s += hop) {
+    let q1 = 0, q2 = 0;
+    for (let i = 0; i < N; i++) { const q0 = co * q1 - q2 + x[s + i]; q2 = q1; q1 = q0; }
+    const p = q1 * q1 + q2 * q2 - co * q1 * q2;
+    out.push(10 * Math.log10(p / (N * N) + 1e-12));
+  }
+  return out;
+}
+function pct(arr, p){ const a = Array.from(arr).sort((x, y) => x - y); return a[Math.min(a.length - 1, Math.max(0, Math.floor(a.length * p)))]; }
+/* 1차원 k-평균(로그 눈금) — 가운데값들을 작은 순으로 */
+function kmeans(vals, k){
+  if (!vals.length) return [];
+  const v = vals.map(Math.log).sort((a, b) => a - b);
+  let c = [], n = [];
+  for (let i = 0; i < k; i++) c.push(v[Math.min(v.length - 1, Math.floor((i + 0.5) * v.length / k))]);
+  for (let it = 0; it < 25; it++) {
+    const s = new Array(k).fill(0); n = new Array(k).fill(0);
+    v.forEach(x => { let b = 0; for (let i = 1; i < k; i++) if (Math.abs(x - c[i]) < Math.abs(x - c[b])) b = i; s[b] += x; n[b]++; });
+    c = c.map((ci, i) => n[i] ? s[i] / n[i] : ci);
+  }
+  return c.map((ci, i) => ({m: Math.exp(ci), n: n[i]})).sort((a, b) => a.m - b.m);
+}
+const twoGroups = (km, r) => km.length === 2 && km[0].n > 0 && km[1].n > 0 && km[1].m / km[0].m > r;
+/* 켜진·꺼진 길이 → 단위(초) */
+function estimateUnit(marks, spaces, fallback){
+  if (!marks.length) return fallback;
+  if (marks.length >= 2) {
+    const km = kmeans(marks, 2);
+    if (twoGroups(km, 1.8)) return clamp((km[0].m + km[1].m / 3) / 2, 0.025, 0.5);
+  }
+  const m = pct(marks, 0.5);
+  if (spaces.length >= 2) {
+    const s0 = pct(spaces, 0.15);
+    return clamp(m / s0 > 2 ? m / 3 : m, 0.025, 0.5);
+  }
+  return clamp(fallback && Math.abs(m / fallback - 3) < Math.abs(m / fallback - 1) ? m / 3 : m, 0.025, 0.5);
+}
+/* 켜짐·꺼짐 길이 → 판정 기준. 무리가 둘로 갈리면 두 무리 가운데(기하평균)에서 자른다 —
+   손으로 친 부호처럼 길이가 들쭉날쭉해도 「점의 두 배」 같은 고정 기준보다 덜 틀린다 */
+function timing(marks, spaces, fallback){
+  const km = marks.length >= 2 ? kmeans(marks, 2) : [];
+  let u, markTh;
+  if (twoGroups(km, 1.8)) { u = clamp((km[0].m + km[1].m / 3) / 2, 0.025, 0.5); markTh = Math.sqrt(km[0].m * km[1].m); }
+  else { u = estimateUnit(marks, spaces, fallback); markTh = 2 * u; }
+  /* 부호 안 쉼(1) ↔ 글자 사이(3) — 두 번 고쳐 잡는다 */
+  let gapTh = 2 * u, letterC = 3 * u, wordC = 0;
+  for (let it = 0; it < 2; it++) {
+    const intra = spaces.filter(x => x < gapTh), inter = spaces.filter(x => x >= gapTh);
+    const ic = intra.length ? pct(intra, 0.5) : u;
+    if (inter.length >= 3) {
+      const k2 = kmeans(inter, 2);
+      if (twoGroups(k2, 1.7)) { letterC = k2[0].m; wordC = k2[1].m; } else { letterC = pct(inter, 0.5); wordC = 0; }
+    } else if (inter.length) { letterC = pct(inter, 0.5); wordC = 0; }
+    gapTh = clamp(Math.sqrt(ic * letterC), 1.5 * u, 2.6 * u);
+  }
+  const wordTh = wordC ? Math.sqrt(letterC * wordC) : Math.max(5 * u, letterC * 1.6);
+  return {u, markTh, gapTh, wordTh};
+}
+/* 켜짐/꺼짐 줄 → 모스부호 글 */
+function runsToMorse(runs, T){
+  let s = '', sym = '';
+  runs.forEach((r, i) => {
+    if (r.on) { sym += r.d < T.markTh ? '.' : '-'; return; }
+    if (i === 0) return;
+    if (r.d >= T.gapTh) { if (sym) { s += (s && !/ \/ $/.test(s) ? ' ' : '') + sym; sym = ''; } if (r.d >= T.wordTh && s && !/ \/ $/.test(s)) s += ' / '; }
+  });
+  if (sym) s += (s && !/ \/ $/.test(s) ? ' ' : '') + sym;
+  return s.replace(/ \/ $/, '');
+}
+/* dB 곡선 → 켜짐/꺼짐 줄(초). hop 5ms */
+function envToRuns(env, noise, peak){
+  const on = noise + 0.55 * (peak - noise), off = noise + 0.40 * (peak - noise);
+  const st = new Uint8Array(env.length);
+  let s = 0;
+  for (let i = 0; i < env.length; i++) { if (s ? env[i] < off : env[i] > on) s ^= 1; st[i] = s; }
+  /* 10ms 보다 짧은 튐은 지운다 */
+  for (let i = 1; i < st.length - 1; i++) if (st[i - 1] === st[i + 1] && st[i] !== st[i - 1]) st[i] = st[i - 1];
+  const runs = [];
+  for (let i = 0; i < st.length;) { let j = i; while (j < st.length && st[j] === st[i]) j++; runs.push({on: !!st[i], d: (j - i) * 0.005, a: i, b: j}); i = j; }
+  return {runs, st, on, off};
+}
+/* 녹음 파일 한 번에 */
+function analyzeSamples(x, sr){
+  const tone = findTone(x, sr);
+  if (!tone) return {ok: false, why: 'short'};
+  const env = goertzelEnv(x, sr, tone.hz);
+  /* 디지털 무음(-100dB 아래)은 잡음 크기를 잴 때 빼고 본다 — 잡음 섞인 녹음 앞뒤에 무음이 붙은 파일에서 기준이 내려가지 않게 */
+  const live = env.filter(v => v > -100);
+  const peak = pct(env, 0.98);
+  let noise = pct(live.length > 40 ? live : env, 0.2);
+  if (peak - noise < 10) noise = pct(env, 0.2);   /* 잡음 없는 깨끗한 파일 — 무음이 곧 바닥 */
+  const snr = peak - noise;
+  if (env.length < 20 || snr < 8) return {ok: false, why: 'nosignal', hz: tone.hz, snr, env};
+  const R = envToRuns(env, noise, peak);
+  const runs = R.runs;
+  while (runs.length && !runs[0].on) runs.shift();
+  while (runs.length && !runs[runs.length - 1].on) runs.pop();
+  const marks = runs.filter(r => r.on).map(r => r.d), spaces = runs.filter(r => !r.on).map(r => r.d);
+  if (!marks.length) return {ok: false, why: 'nosignal', hz: tone.hz, snr, env};
+  const T = timing(marks, spaces, 1.2 / 15);
+  return {ok: true, hz: tone.hz, snr, u: T.u, wpm: 1.2 / T.u, morse: runsToMorse(runs, T), env, st: R.st, noise, peak};
+}
+
+/* ── 마이크 — 들어오는 대로 ──
+   세기(dB)를 5ms 마다 전부 모아 두었다가, 화면을 고칠 때마다 녹음 파일과 같은 방법으로 처음부터 다시 읽는다.
+   켜짐/꺼짐 기준(최근 20초의 잡음·신호 크기)과 점·선 길이(k-평균)를 매번 새로 잡으므로,
+   듣는 동안 앞에서 틀렸던 점·선·띄어쓰기도 저절로 바로잡힌다.
+   음높이를 찾기 전 3초는 버리지 않고 쌓아 두었다가 찾는 순간 다시 읽는다(첫 글자를 놓치지 않게). */
+const LS = {on: false, stream: null, src: null, proc: null, sink: null, sr: 48000, buf: new Float32Array(8192), bw: 0,
+  hist: new Float32Array(2048), hz: 0, co: 0, pend: [], all: [], st: [], noise: -90, peak: -90,
+  u: 0.08, lastFft: 0, raf: 0, mode: '', fileRes: null, fileMor: '', nMarks: 0};
+const LS_MAX = 200 * 60 * 10;   /* 10분치(5ms × 12만) */
+async function micStart(){
+  if (LS.on) { micStop(); return; }
+  if (IA.on && !IA.tried) { openBlock('inapp', 'mic'); return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { toast('이 브라우저는 마이크를 쓸 수 없어요'); return; }
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: false, noiseSuppression: false, autoGainControl: false}});
+  } catch (e) {
+    if (IN_FRAME) { openBlock('frame', 'mic'); return; }
+    if (IA.on) { openBlock('inapp-failed', 'mic'); return; }
+    toast(e && e.name === 'NotAllowedError' ? '마이크 허용이 필요해요. 주소창 왼쪽 자물쇠에서 마이크를 허용해 주세요.' : '마이크를 켜지 못했어요', 4200);
+    return;
+  }
+  stopPlay(true);
+  const ctx = ac();
+  lsReset();
+  LS.on = true; LS.mode = 'mic'; LS.stream = stream; LS.sr = ctx.sampleRate;
+  LS.src = ctx.createMediaStreamSource(stream);
+  LS.proc = ctx.createScriptProcessor(2048, 1, 1);
+  LS.sink = ctx.createGain(); LS.sink.gain.value = 0;
+  LS.proc.onaudioprocess = e => lsFeed(e.inputBuffer.getChannelData(0));
+  LS.src.connect(LS.proc); LS.proc.connect(LS.sink); LS.sink.connect(ctx.destination);
+  $('micBtn').textContent = '■ 듣기 멈추기'; $('micBtn').classList.remove('pri');
+  $('lsPill').className = 'pill run'; $('lsPill').textContent = '듣는 중';
+  $('fileBar').classList.add('hide');
+  if (!LS.raf) LS.raf = requestAnimationFrame(lsDraw);
+}
+function micStop(){
+  if (!LS.on) return;
+  LS.on = false;
+  try { LS.proc.disconnect(); LS.src.disconnect(); LS.sink.disconnect(); } catch (e) { /* 무시 */ }
+  if (LS.stream) LS.stream.getTracks().forEach(t => t.stop());
+  LS.stream = null;
+  $('micBtn').textContent = '🎤 마이크로 듣기'; $('micBtn').classList.add('pri');
+  $('lsPill').className = 'pill idle'; $('lsPill').textContent = '멈춤';
+  lsShow();
+}
+function lsReset(){
+  LS.bw = 0; LS.buf.fill(0); LS.hist.fill(0); LS.hz = 0; LS.co = 0; LS.pend = []; LS.all = []; LS.st = [];
+  LS.noise = -90; LS.peak = -90; LS.u = 1.2 / 15; LS.lastFft = 0; LS.fileRes = null; LS.fileMor = ''; LS.nMarks = 0;
+}
+function lsFeed(ch){
+  for (let i = 0; i < ch.length; i++) { LS.buf[LS.bw] = ch[i]; LS.bw = (LS.bw + 1) & 8191; LS.pend.push(ch[i]); }
+  LS.lastFft += ch.length;
+  if (LS.lastFft >= LS.sr * 0.25) {
+    LS.lastFft = 0;
+    const x = new Float32Array(4096);
+    for (let i = 0; i < 4096; i++) x[i] = LS.buf[(LS.bw - 4096 + i + 8192) & 8191];
+    const m = spectrumAt(x, 0), pk = peakHz(m, LS.sr);
+    const sorted = Array.from(m.slice(Math.max(1, pk.bin - 200), pk.bin + 200)).sort((a, b) => a - b);
+    const med = sorted[sorted.length >> 1] || 1e-12;
+    for (let i = 0; i < 2048; i++) LS.hist[i] *= 0.93;
+    if (pk.pow > med * 40) { LS.hist[pk.bin] += 1; LS.hist[pk.bin - 1] += 0.5; LS.hist[pk.bin + 1] += 0.5; }
+    let bi = 0; for (let i = 1; i < 2048; i++) if (LS.hist[i] > LS.hist[bi]) bi = i;
+    if (LS.hist[bi] > 1.2) {
+      const hz = bi * LS.sr / 4096;
+      if (!LS.hz || Math.abs(hz - LS.hz) > 25) { LS.hz = hz; LS.co = 2 * Math.cos(2 * Math.PI * hz / LS.sr); }
+    }
+  }
+  /* 음높이를 찾기 전에는 3초까지 쌓아 둔다 — 찾는 순간 처음부터 다시 읽는다 */
+  if (!LS.hz) { if (LS.pend.length > LS.sr * 3) LS.pend.splice(0, LS.pend.length - LS.sr * 3); return; }
+  const hop = Math.round(LS.sr * 0.005), N = Math.round(LS.sr * 0.010);
+  let p0 = 0;
+  while (LS.pend.length - p0 >= N) {
+    let q1 = 0, q2 = 0;
+    for (let i = 0; i < N; i++) { const q0 = LS.co * q1 - q2 + LS.pend[p0 + i]; q2 = q1; q1 = q0; }
+    const p = q1 * q1 + q2 * q2 - LS.co * q1 * q2;
+    LS.all.push(10 * Math.log10(p / (N * N) + 1e-12));
+    p0 += hop;
+  }
+  if (p0) LS.pend.splice(0, p0);
+  if (LS.all.length > LS_MAX) LS.all.splice(0, LS.all.length - LS_MAX);
+}
+/* 지금까지 들은 부호 — 모아 둔 세기 전체를 한 번에 다시 읽는다 */
+function lsMorse(){
+  if (LS.mode === 'file') return LS.fileMor;
+  const all = LS.all, n = all.length;
+  LS.st = [];
+  if (n < 40) return '';
+  const win = [], wall = [];
+  for (let i = Math.max(0, n - 4000); i < n; i += 2) { wall.push(all[i]); if (all[i] > -100) win.push(all[i]); }   /* 최근 20초로 잡음·신호 크기(디지털 무음 빼고) */
+  LS.peak = pct(wall, 0.99);
+  LS.noise = pct(win.length >= 20 ? win : wall, 0.2);
+  if (LS.peak - LS.noise < 10) LS.noise = pct(wall, 0.2);
+  if (LS.peak - LS.noise < 10) return '';
+  const R = envToRuns(all, LS.noise, LS.peak);
+  LS.st = R.st;
+  const runs = R.runs.slice();
+  while (runs.length && !runs[0].on) runs.shift();
+  const last = runs.length && !runs[runs.length - 1].on ? runs.pop() : null;   /* 지금 조용한 중 */
+  const marks = runs.filter(r => r.on).map(r => r.d);
+  LS.nMarks = marks.length;
+  if (!marks.length) return '';
+  const spaces = runs.filter(r => !r.on).map(r => r.d);
+  const T = timing(marks, spaces, LS.u);
+  LS.u = T.u;
+  let m = runsToMorse(runs, T);
+  if (last && last.d >= Math.max(T.wordTh, 6 * T.u) && m) m += ' /';   /* 길게 조용하면 단어가 끝난 것으로 보여 준다 */
+  return m;
+}
+function lsShow(){
+  const mor = lsMorse().replace(/ \/$/, LS.on ? ' /' : '');
+  $('lsMor').textContent = mor;
+  if (!mor.replace(/[\s\/]/g, '')) { $('lsTxt').innerHTML = '<span class="ph">' + (LS.on ? '듣고 있어요 · 삐― 소리를 들려주세요' : '소리가 들리면 여기에 글자가 나타납니다') + '</span>'; return; }
+  const d = decodeMorse(mor, S.lsRead);
+  $('lsTxt').textContent = groupsText(d.res.groups);
+}
+let lsShowT = 0;
+function lsDraw(){
+  LS.raf = 0;
+  if (!LS.on) return;
+  const now = perf();
+  if (now - lsShowT > 150) {
+    lsShowT = now; lsShow();
+    $('lsHz').innerHTML = LS.hz ? Math.round(LS.hz) + '<small>Hz</small>' : '찾는 중';
+    $('lsWpm').innerHTML = LS.nMarks >= 3 ? Math.round(1.2 / LS.u) + '<small>단어/분</small>' : '–';
+    $('lsSnr').innerHTML = LS.all.length > 60 ? Math.round(LS.peak - LS.noise) + '<small>dB</small>' : '–';
+  }
+  const k = Math.max(0, LS.all.length - 900);
+  drawScope(LS.all.slice(k), LS.st.slice ? LS.st.slice(k) : [], LS.noise, LS.peak, -1);
+  LS.raf = requestAnimationFrame(lsDraw);
+}
+/* 세기 그래프 — env(dB) 막대, 켜진 곳은 주황 */
+function drawScope(env, st, noise, peak, head){
+  const cv = $('scope'), dpr = Math.min(2, window.devicePixelRatio || 1), W = cv.clientWidth || 600, H = cv.clientHeight || 120;
+  if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const g = cv.getContext('2d');
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.fillStyle = '#140f0c'; g.fillRect(0, 0, W, H);
+  const n = env.length;
+  if (!n) return;
+  const lo = Math.min(noise, peak - 30) - 3, hi = peak + 3, cols = Math.min(W, n), per = n / cols;
+  for (let c = 0; c < cols; c++) {
+    const a = Math.floor(c * per), b = Math.max(a + 1, Math.floor((c + 1) * per));
+    let m = -200, on = 0;
+    for (let i = a; i < b; i++) { if (env[i] > m) m = env[i]; if (st[i]) on = 1; }
+    const h = clamp((m - lo) / (hi - lo), 0, 1) * (H - 8);
+    g.fillStyle = on ? '#fb923c' : '#5b4a3f';
+    g.fillRect(c * W / cols, H - 4 - h, Math.max(1, W / cols - (cols < W / 2 ? 1 : 0)), h);
+  }
+  const th = noise + 0.55 * (peak - noise);
+  if (peak - noise >= 8) { const y = H - 4 - clamp((th - lo) / (hi - lo), 0, 1) * (H - 8); g.strokeStyle = 'rgba(255,255,255,.35)'; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); g.setLineDash([]); }
+  if (head >= 0) { g.fillStyle = '#fff'; g.fillRect(head * W - 1, 0, 2, H); }
+}
+
+/* ── 녹음·영상 파일 ── */
+async function openFile(f){
+  if (!f) return;
+  if (LS.on) micStop();
+  stopPlay(true);
+  $('lsPill').className = 'pill run'; $('lsPill').textContent = '읽는 중';
+  $('lsTxt').innerHTML = '<span class="ph">파일을 읽고 있어요…</span>'; $('lsMor').textContent = '';
+  let buf;
+  try {
+    const ab = await f.arrayBuffer();
+    const ctx = ac();
+    buf = await new Promise((res, rej) => { const p = ctx.decodeAudioData(ab, res, rej); if (p && p.then) p.then(res, rej); });
+  } catch (e) {
+    $('lsPill').className = 'pill idle'; $('lsPill').textContent = '읽지 못함';
+    $('lsTxt').innerHTML = '<span class="ph">이 파일의 소리를 읽지 못했어요. MP3·M4A·WAV·MP4 같은 흔한 형식으로 바꿔 보세요.</span>';
+    return;
+  }
+  if (buf.duration > 900) { toast('15분이 넘는 파일은 앞 15분만 읽습니다', 3600); }
+  const sr = buf.sampleRate, n = Math.min(buf.length, Math.round(sr * 900));
+  const x = new Float32Array(n);
+  for (let c = 0; c < buf.numberOfChannels; c++) { const d = buf.getChannelData(c); for (let i = 0; i < n; i++) x[i] += d[i] / buf.numberOfChannels; }
+  await new Promise(r => setTimeout(r, 30));
+  const R = analyzeSamples(x, sr);
+  LS.fileRes = R; LS.mode = 'file';
+  const u = URL.createObjectURL(f);
+  const au = $('fileAudio'); if (au.dataset.url) URL.revokeObjectURL(au.dataset.url); au.dataset.url = u; au.src = u;
+  $('fileName').textContent = f.name.length > 28 ? f.name.slice(0, 26) + '…' : f.name;
+  $('fileBar').classList.remove('hide');
+  $('lsHz').innerHTML = R.hz ? Math.round(R.hz) + '<small>Hz</small>' : '–';
+  $('lsSnr').innerHTML = R.snr != null ? Math.round(R.snr) + '<small>dB</small>' : '–';
+  $('lsWpm').innerHTML = R.ok ? Math.round(R.wpm) + '<small>단어/분</small>' : '–';
+  if (R.env) drawScope(R.env, R.st || new Uint8Array(R.env.length), R.noise != null ? R.noise : pct(R.env, 0.2), R.peak != null ? R.peak : pct(R.env, 0.98), -1);
+  $('lsPill').className = 'pill idle'; $('lsPill').textContent = R.ok ? '다 읽음' : '신호 못 찾음';
+  if (!R.ok) {
+    LS.fileMor = '';
+    $('lsTxt').innerHTML = '<span class="ph">' + (R.why === 'short' ? '소리가 너무 짧아요.' : '모스부호처럼 끊겼다 이어지는 한 가지 높이의 소리를 찾지 못했어요. 음악·말소리가 섞였거나 소리가 너무 작을 수 있습니다.') + '</span>';
+    return;
+  }
+  LS.fileMor = R.morse;
+  lsShow();
+  const d = decodeMorse(R.morse, S.lsRead);
+  DONE.show('소리 해독을 마쳤습니다', '「' + groupsText(d.res.groups).slice(0, 40) + '」로 읽었어요 · 약 ' + Math.round(R.hz) + 'Hz · 분당 ' + Math.round(R.wpm) + '단어',
+    ['이상한 글자가 섞였다면 <b>한글로 / 영문으로</b>를 바꿔 보세요.', '<b>변환 칸으로 보내기</b>를 누르면 부호를 고치거나 다시 들어 볼 수 있습니다.', '해독 결과는 소리의 길이로 추정한 <b>참고용</b>입니다.']);
+}
+
+/* ── 두드리기(전신 키) ── */
+const TAP = {down: false, t0: 0, up: 0, sym: '', mor: '', u: 0.092, marks: [], raf: 0, wordDone: true, id: -1};
+function tapBase(){ return 1.2 / (S.tapWpm || 13); }
+function tapDown(){
+  if (TAP.down) return;
+  /* 쉰 시간은 누르는 순간에도 다시 따진다 — 화면 갱신(rAF)이 늦게 돌아도 글자·단어 끝을 놓치지 않게 */
+  if (!TAP.wordDone && TAP.up) {
+    const gap = (perf() - TAP.up) / 1000;
+    if (TAP.sym && gap >= 2.5 * TAP.u) { TAP.mor += (TAP.mor && !/ \/ $/.test(TAP.mor) ? ' ' : '') + TAP.sym; TAP.sym = ''; }
+    if (!TAP.sym && gap >= 6 * TAP.u && TAP.mor && !/ \/ $/.test(TAP.mor)) TAP.mor += ' / ';
+  }
+  TAP.down = true; TAP.t0 = perf();
+  if (S.tapTone) sideOn();
+  $('key').classList.add('dn');
+  $('tapPill').className = 'pill run'; $('tapPill').textContent = '누르는 중';
+  tapLoop();
+}
+function tapUp(){
+  if (!TAP.down) return;
+  TAP.down = false; sideOff(); $('key').classList.remove('dn');
+  const d = (perf() - TAP.t0) / 1000;
+  if (d < 0.015) return;
+  TAP.sym += d < 2 * TAP.u ? '.' : '-';
+  TAP.marks.push(d); if (TAP.marks.length > 16) TAP.marks.shift();
+  /* 두 무리가 갈리면 기준을 누르는 빠르기에 맞춘다(처음 빠르기의 절반~두 배 안에서) */
+  if (TAP.marks.length >= 4) {
+    const km = kmeans(TAP.marks, 2);
+    if (twoGroups(km, 1.8)) TAP.u = clamp((km[0].m + km[1].m / 3) / 2, tapBase() * 0.5, tapBase() * 2);
+  }
+  TAP.up = perf(); TAP.wordDone = false;
+  $('tapPill').className = 'pill acc'; $('tapPill').textContent = '분당 약 ' + Math.round(1.2 / TAP.u) + '단어';
+  tapShow(); tapLoop();
+}
+function tapLoop(){ if (!TAP.raf) TAP.raf = requestAnimationFrame(tapFrame); }
+function tapFrame(){
+  TAP.raf = 0;
+  if (TAP.down) { $('tapGap').style.width = '0'; $('tapSym').textContent = toStyle(TAP.sym, 'dot') + ((perf() - TAP.t0) / 1000 < 2 * TAP.u ? '·' : '−'); tapLoop(); return; }
+  if (TAP.wordDone) { $('tapGap').style.width = '0'; return; }
+  const gap = (perf() - TAP.up) / 1000, u = TAP.u;
+  $('tapGap').style.width = clamp(gap / (6 * u) * 100, 0, 100) + '%';
+  if (TAP.sym && gap >= 2.5 * u) { TAP.mor += (TAP.mor && !/ \/ $/.test(TAP.mor) ? ' ' : '') + TAP.sym; TAP.sym = ''; tapShow(); }
+  if (!TAP.sym && gap >= 6 * u) { if (TAP.mor) TAP.mor += ' / '; TAP.wordDone = true; tapShow(); $('tapGap').style.width = '0'; return; }
+  tapLoop();
+}
+function tapShow(){
+  $('tapSym').textContent = toStyle(TAP.sym, 'dot');
+  const mor = (TAP.mor + (TAP.sym ? ' ' + TAP.sym : '')).trim();
+  $('tapMor').textContent = mor.replace(/ \/ ?$/, '');
+  if (!mor.replace(/[\s\/]/g, '')) { $('tapTxt').innerHTML = '<span class="ph">예) 짧게 세 번 · 길게 세 번 · 짧게 세 번 → SOS</span>'; return; }
+  const d = decodeMorse(mor, S.tapRead);
+  $('tapTxt').textContent = groupsText(d.res.groups);
+}
+function tapClear(){ TAP.sym = ''; TAP.mor = ''; TAP.marks = []; TAP.u = tapBase(); TAP.wordDone = true; $('tapPill').className = 'pill idle'; $('tapPill').textContent = '누르면 시작'; tapShow(); }
+function tapBack(){
+  if (TAP.sym) TAP.sym = '';
+  else { TAP.mor = TAP.mor.replace(/ \/ $/, '').replace(/ ?[.\-]+$/, ''); }
+  TAP.wordDone = true; tapShow();
+}
+</script>
+<script>
+"use strict";
+/* ════════════════════════════════════════════════════════════
+   화면 — 설정 · 변환 · 탭 · 부호표 · 연습 · 앱 안 · 결과 카드 · 시작
+   ════════════════════════════════════════════════════════════ */
+const SKEY = 'morse_code.v1';
+const S = Object.assign({wpm: 15, hz: 600, vol: 60, farns: false, loop: false, style: 'ascii', read: 'auto',
+  outs: {snd: true, scr: false, torch: false, vib: false}, tapWpm: 13, tapTone: true, tapRead: 'auto', lsRead: 'auto',
+  set: 'en', qzSet: 'en', qzMode: 'hear', cardPlain: true, tab: 'conv'}, (() => { try { return JSON.parse(localStorage.getItem(SKEY)) || {}; } catch (e) { return {}; } })());
+S.outs = Object.assign({snd: true, scr: false, torch: false, vib: false}, S.outs, {torch: false});   /* 손전등은 매번 새로 허용받는다 */
+function save(){ try { localStorage.setItem(SKEY, JSON.stringify(S)); } catch (e) { /* 무시 */ } }
+
+/* ── 변환 ─────────────────────────────────────────────── */
+let PLAN = {groups: [], dir: '', plain: '', words: null, spans: [], chips: []};
+function convert(){
+  const v = $('inp').value;
+  $('inCnt').textContent = Array.from(v).length.toLocaleString() + '자';
+  if (P.on) stopPlay(true);
+  const morse = isMorseInput(v);
+  $('inp').classList.toggle('morse', morse);
+  $('warnLine').classList.add('hide'); $('altLine').classList.add('hide');
+  if (!v.trim()) {
+    PLAN = {groups: [], dir: '', plain: '', words: null, spans: [], chips: []};
+    $('out').className = 'out morse';
+    $('out').innerHTML = '<span class="ph">위 칸에 입력하면 여기에 바로 바뀌어 나옵니다</span>';
+    dirUI(''); $('brk').innerHTML = ''; playInfo();
+    return;
+  }
+  if (morse) {
+    const d = decodeMorse(v, S.read);
+    PLAN = {groups: d.res.groups, dir: 'dec', plain: groupsText(d.res.groups), words: d.words};
+    $('out').className = 'out text';
+    $('out').innerHTML = d.res.groups.map((g, i) => g.sp ? ' ' : '<span class="t' + (g.bad ? ' bad' : '') + '" data-g="' + i + '">' + esc(g.label) + '</span>').join('');
+    const other = d.use === 'ko' ? d.en : d.ko, ol = d.use === 'ko' ? '영문으' : '한글';
+    const ot = groupsText(other.groups);
+    if (ot && ot !== PLAN.plain) {
+      $('altLine').innerHTML = (S.read === 'auto' ? (d.use === 'ko' ? '한글로 읽었어요 · ' : '영문으로 읽었어요 · ') : '') + ol + '로 읽으면: <b>' + esc(ot.slice(0, 80)) + (ot.length > 80 ? '…' : '') + '</b> <button type="button" id="altGo">' + ol + '로 보기</button>';
+      $('altLine').classList.remove('hide');
+      $('altGo').onclick = () => { S.read = d.use === 'ko' ? 'en' : 'ko'; save(); segOn('readSeg', S.read); convert(); };
+    }
+    const bad = d.res.bad, orph = d.use === 'ko' ? d.res.orph : 0;
+    if (bad || orph) {
+      $('warnLine').innerHTML = (bad ? '표에 없는 부호 <b>' + bad + '개</b>는 □로 표시했어요. 점·선 개수가 맞는지, 글자 사이를 띄웠는지 확인하세요. ' : '') +
+        (orph ? '짝이 맞지 않는 자모 <b>' + orph + '개</b>는 따로 적었어요(ㄱ·ㅏ처럼). 한글이 아니라면 <b>영문으로</b>를 눌러 보세요.' : '');
+      $('warnLine').classList.remove('hide');
+    }
+  } else {
+    const e = encodeText(v);
+    PLAN = {groups: e.groups, dir: 'enc', plain: normText(v).replace(/\s+/g, ' ').trim()};
+    $('out').className = 'out morse';
+    $('out').innerHTML = e.groups.length ? e.groups.map((g, i) => g.sp ? ' <span class="sl">/</span> ' : (i && !e.groups[i - 1].sp ? ' ' : '') +
+      '<span class="t" data-g="' + i + '">' + toStyle(g.codes.map(x => x.c).join(' '), S.style) + '</span>').join('') : '<span class="ph">모스부호로 바꿀 수 있는 글자가 없어요</span>';
+    const w = [];
+    if (e.unk.size) w.push('모스부호가 없는 글자는 뺐어요: <b>' + esc(Array.from(e.unk.keys()).slice(0, 12).join(' ')) + '</b>');
+    if (e.ko && e.en) w.push('한글과 영어가 섞여 있어요. 같은 부호가 한글·영어에 모두 쓰여서, 받는 사람에게 <b>어느 부분이 영어인지</b> 따로 알려 줘야 합니다.');
+    if (w.length) { $('warnLine').innerHTML = w.join('<br>'); $('warnLine').classList.remove('hide'); }
+  }
+  PLAN.spans = Array.from($('out').querySelectorAll('.t'));
+  dirUI(PLAN.dir);
+  renderBrk();
+  playInfo();
+}
+function dirUI(dir){
+  const dec = dir === 'dec';
+  $('dirL').innerHTML = dec ? '모스부호<small>· 점 − 선</small>' : '글자<small>한글 · 영어 · 숫자</small>';
+  $('dirR').innerHTML = dec ? '글자<small>' + (PLAN.groups.length ? (S.read === 'auto' ? '자동으로 ' : '') + (PLAN.groups.some(g => g.codes && R_KO[g.codes[0].c] && /[가-힣ㄱ-ㅣ]/.test(g.label)) ? '한글' : '영문') + '로 읽음' : '한글 · 영어') + '</small>' : '모스부호<small>· 점 − 선</small>';
+  $('dirPill').className = dir ? 'pill acc' : 'pill idle';
+  $('dirPill').textContent = dir === 'dec' ? '모스부호 → 글자' : dir === 'enc' ? '글자 → 모스부호' : '방향 자동';
+  $('outLab').textContent = dec ? '해독한 글자' : '모스부호';
+  $('styleSeg').classList.toggle('hide', dec);
+  $('readSeg').classList.toggle('hide', !dec);
+}
+function renderBrk(){
+  const out = []; let k = -1, cut = false;
+  PLAN.groups.forEach(g => {
+    if (cut) return;
+    if (g.sp) { out.push('<span class="bk sp"></span>'); return; }
+    g.codes.forEach(x => { k++; if (k >= 400) { cut = true; return; } out.push('<span class="bk" data-k="' + k + '" data-c="' + x.c + '"><b>' + esc(x.j) + '</b><span>' + toStyle(x.c, 'dot') + '</span></span>'); });
+  });
+  if (cut) out.push('<span class="bk sp" style="min-width:auto;padding:4px 8px">…</span>');
+  $('brk').innerHTML = out.join('');
+  PLAN.chips = Array.from($('brk').querySelectorAll('.bk[data-k]'));
+}
+let curG = -1, curK = -1;
+function markPlaying(g, k){
+  if (g !== curG) {
+    if (curG >= 0) { const el = $('out').querySelector('.t[data-g="' + curG + '"]'); if (el) el.classList.remove('cur'); }
+    if (g >= 0) { const el = $('out').querySelector('.t[data-g="' + g + '"]'); if (el) el.classList.add('cur'); }
+    curG = g;
+  }
+  if (k !== curK) {
+    if (PLAN.chips[curK]) PLAN.chips[curK].classList.remove('cur');
+    if (PLAN.chips[k]) PLAN.chips[k].classList.add('cur');
+    curK = k;
+  }
+}
+function playInfo(){
+  if (!PLAN.groups.length) { $('playInfo').textContent = '결과가 생기면 길이를 알려 드려요'; $('playBtn').disabled = false; return; }
+  let wpm = S.wpm; const light = S.outs.scr || S.outs.torch;
+  if (light) wpm = Math.min(wpm, LIGHT_MAX_WPM);
+  const tl = buildTimeline(PLAN.groups, wpm, S.farns);
+  const sec = tl.total;
+  $('playInfo').textContent = '부호 ' + tl.codes.toLocaleString() + '개 · ' + (sec < 60 ? sec.toFixed(1) + '초' : Math.floor(sec / 60) + '분 ' + Math.round(sec % 60) + '초') + (light && S.wpm > LIGHT_MAX_WPM ? ' (빛 신호 속도)' : '');
+}
+/* 결과를 글로 — 부호로 바꿨으면 부호, 해독했으면 글자 */
+function resultText(){
+  if (PLAN.dir === 'enc') return morseString(PLAN.groups, S.style);
+  if (PLAN.dir === 'dec') return PLAN.plain;
+  return '';
+}
+/* 링크에 싣는 부호(점·선 ASCII) */
+function linkMorse(){
+  if (PLAN.dir === 'enc') return morseString(PLAN.groups, 'ascii');
+  if (PLAN.dir === 'dec') return PLAN.words.map(w => w.join(' ')).join(' / ');
+  return '';
+}
+function copyText(text, done){
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done)); return; }
+  } catch (e) { /* 아래로 */ }
+  fallbackCopy(text, done);
+}
+function fallbackCopy(text, done){
+  const t = document.createElement('textarea');
+  t.value = text; t.setAttribute('readonly', ''); t.style.cssText = 'position:fixed;left:-9999px;top:0';
+  document.body.appendChild(t); t.select(); t.setSelectionRange(0, text.length);
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) { /* 무시 */ }
+  t.remove();
+  if (ok) done(); else toast('복사하지 못했어요. 브라우저가 막았을 수 있습니다.');
+}
+function shareLink(){
+  const m = linkMorse();
+  if (!m) { toast('먼저 위 칸에 글자나 모스부호를 넣으세요'); return; }
+  const url = location.href.split('#')[0] + '#m=' + encodeURIComponent(m).replace(/%20/g, '+');
+  if (url.length > 7000) { toast('글이 너무 길어 링크로 보낼 수 없어요. 소리 파일이나 이미지로 보내 주세요.', 3600); return; }
+  const done = () => toast('링크를 복사했어요. 받는 사람이 열면 부호가 그대로 들어가 해독해 볼 수 있어요.', 3600);
+  if (navigator.share && TOUCH_ONLY && !IA.on) {
+    navigator.share({title: '모스부호가 왔어요', text: '이 모스부호를 해독해 보세요 · ' + m.slice(0, 60), url}).catch(err => { if (!err || err.name !== 'AbortError') copyText(url, done); });
+    return;
+  }
+  copyText(url, done);
+}
+/* 주소 #m= 으로 받은 부호 */
+function readHashMessage(){
+  const h = location.hash || '';
+  if (h.indexOf('#m=') !== 0) return false;
+  let m = '';
+  try { m = decodeURIComponent(h.slice(3).replace(/\+/g, ' ')); } catch (e) { return false; }
+  if (!isMorseInput(m)) return false;
+  $('inp').value = m.slice(0, 5000);
+  return true;
+}
+function insertAtCaret(t){
+  const el = $('inp'), a = el.selectionStart != null ? el.selectionStart : el.value.length, b = el.selectionEnd != null ? el.selectionEnd : a;
+  if (t === 'bs') {
+    if (a !== b) el.setRangeText('', a, b, 'end');
+    else if (a > 0) { const pre = el.value.slice(0, a), cut = / \/ $/.test(pre) ? 3 : 1; el.setRangeText('', a - cut, a, 'end'); }
+  } else el.setRangeText(t, a, b, 'end');
+  convert();
+}
+
+/* ── 보내기 카드 ── */
+function outsUI(){
+  document.querySelectorAll('#outs button').forEach(b => {
+    const o = b.dataset.o;
+    b.classList.toggle('on', !!S.outs[o]);
+    b.setAttribute('aria-pressed', S.outs[o] ? 'true' : 'false');
+    b.classList.toggle('na', (o === 'torch' && !TORCH_OK) || (o === 'vib' && !VIB_OK));
+  });
+  const light = S.outs.scr || S.outs.torch;
+  $('sendNote').innerHTML = light ? '빛 신호는 눈을 위해 <b>분당 ' + LIGHT_MAX_WPM + '단어</b>보다 빨라지지 않게 늦춰서 깜빡입니다(초당 3번 미만).' :
+    S.outs.vib ? '진동은 <b>안드로이드</b>에서만 됩니다. 휴대폰을 무음으로 두면 진동도 꺼질 수 있어요.' :
+      '소리는 <b>작게</b> 시작하세요. 이어폰이면 특히 조심하세요.';
+  playInfo();
+}
+async function toggleOut(o){
+  if (P.on) stopPlay();
+  if (o === 'torch') {
+    if (S.outs.torch) { S.outs.torch = false; torchStop(); outsUI(); return; }
+    if (!TORCH_OK) { toast('손전등은 안드로이드 크롬에서만 켤 수 있어요. 대신 화면 빛을 써 보세요.', 3600); return; }
+    if (IA.on && !IA.tried) { openBlock('inapp', 'torch'); return; }
+    try { await torchStart(); S.outs.torch = true; toast('손전등 준비됐어요. ▶ 보내기를 누르세요'); }
+    catch (e) {
+      if (e && e.name === 'NoTorch') toast('이 기기의 카메라는 웹에서 손전등을 켤 수 없어요. 화면 빛을 써 보세요.', 3600);
+      else if (IN_FRAME) openBlock('frame', 'torch');
+      else if (IA.on) openBlock('inapp-failed', 'torch');
+      else toast('카메라 허용이 필요해요. 손전등은 뒷면 카메라의 불빛을 씁니다.', 3600);
+    }
+    outsUI(); return;
+  }
+  if (o === 'vib' && !S.outs.vib && !VIB_OK) { toast('진동은 안드로이드 휴대폰에서만 돼요(아이폰은 웹페이지 진동을 막아 둡니다).', 3600); return; }
+  S.outs[o] = !S.outs[o]; save(); outsUI();
+}
+function wpmUI(){ $('wpmHint').textContent = '분당 ' + S.wpm + '단어 · 점 ' + Math.round(1200 / S.wpm) + 'ms'; }
+function fileStamp(){ const d = new Date(); return d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '_' + pad(d.getHours()) + pad(d.getMinutes()); }
+function safeName(s){ return (s || '').replace(/[\\\/:*?"<>|\s]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 20) || '모스부호'; }
+function saveWav(){
+  if (!PLAN.groups.length) { toast('먼저 위 칸에 글자나 모스부호를 넣으세요'); return; }
+  const tl = buildTimeline(PLAN.groups, S.wpm, S.farns);
+  if (tl.total > 300) { toast('소리 파일은 5분까지만 만들 수 있어요. 빠르기를 올리거나 글을 나눠 주세요.', 3600); return; }
+  const w = makeWav(PLAN.groups, S.wpm, S.hz, S.farns);
+  const ok = download(w.blob, '모스부호_' + safeName(PLAN.dir === 'dec' ? PLAN.plain : PLAN.plain) + '.wav');
+  if (!ok) return;
+  DONE.show('소리 파일을 저장했습니다', w.sec.toFixed(1) + '초 · 분당 ' + S.wpm + '단어 · ' + S.hz + 'Hz WAV 파일이에요.',
+    ['메신저로 <b>파일</b>로 보내거나 영상 편집 앱에 효과음으로 넣을 수 있습니다.', '받은 사람은 이 도구의 <b>소리 해독</b>에서 파일을 열면 글자로 되돌려 볼 수 있어요.', IA.on ? '앱 안에서는 저장이 막힐 수 있어요. 안 되면 위쪽 <b>' + IA.label + '</b>를 눌러 주세요.' : '저장 위치는 브라우저의 <b>다운로드</b> 폴더입니다.']);
+}
+function savePng(){
+  if (!PLAN.groups.length) { toast('먼저 위 칸에 글자나 모스부호를 넣으세요'); return; }
+  const c = cardCanvas(PLAN.groups, PLAN.plain, S.cardPlain);
+  c.toBlob(b => {
+    if (!b) { toast('이미지를 만들지 못했어요'); return; }
+    if (!download(b, '모스부호_' + safeName(PLAN.plain) + '.png')) return;
+    DONE.show('이미지 카드를 저장했습니다', S.cardPlain ? '원래 글자와 부호를 함께 넣었어요.' : '부호만 넣었어요 — 받는 사람이 직접 풀어 보게 할 수 있어요.',
+      ['SNS·메신저에 사진으로 올리면 됩니다.', S.cardPlain ? '수수께끼처럼 보내려면 <b>이미지에 원래 글자도 넣기</b>를 끄고 다시 저장하세요.' : '받는 사람이 풀 수 있게 <b>링크로 보내기</b>도 함께 써 보세요.', '휴대폰에서는 아래 이미지를 길게 눌러 사진으로 저장할 수도 있어요.'], c.toDataURL('image/png'));
+  }, 'image/png');
+}
+/* 앱 안(WebView)은 blob: 내려받기를 못 한다 → data: 주소로(10MB 까지) */
+function download(blob, name){
+  if (IA.on) {
+    if (blob.size > 10 * 1024 * 1024) { toast('앱 안에서는 10MB가 넘는 파일을 저장할 수 없어요. ' + IA.label + '를 눌러 주세요.', 4200); return false; }
+    const r = new FileReader();
+    r.onload = () => { const a = document.createElement('a'); a.href = r.result; a.download = name; document.body.appendChild(a); a.click(); a.remove(); };
+    r.readAsDataURL(blob);
+    return true;
+  }
+  const u = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = u; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 8000);
+  return true;
+}
+
+/* ── 부호표 ── */
+const SETS = {
+  en: () => [{h: '영문 알파벳', items: Object.keys(MORSE_EN).map(k => [k, MORSE_EN[k]])}],
+  num: () => [{h: '숫자', items: Object.keys(MORSE_NUM).map(k => [k, MORSE_NUM[k]])},
+    {h: '문장 부호', items: Object.keys(MORSE_SYM).map(k => [k, MORSE_SYM[k]])},
+    {h: '약속 신호', note: '글자 사이를 띄우지 않고 한 번에 보냅니다', items: [['SOS', '...---...'], ['<SK>', '...-.-'], ['<KA>', '-.-.-']]}],
+  ko: () => [{h: '한글 자음', note: '받침도 같은 부호 · 쌍자음은 두 번(ㄲ=ㄱㄱ)', items: KO_CONS.split('').map(k => [k, MORSE_KO[k]])},
+    {h: '한글 모음', note: '겹모음은 둘로(ㅘ=ㅗㅏ · ㅢ=ㅡㅣ · ㅒ=ㅑㅣ)', items: KO_VOWS.split('').map(k => [k, MORSE_KO[k]])}]
+};
+function codeShape(c){ return c.split('').map(ch => ch === '-' ? '<u></u>' : '<i></i>').join(''); }
+function renderTable(sets){
+  $('tblBody').innerHTML = sets.map(s => SETS[s]().map(sec => '<div class="gh">' + sec.h + (sec.note ? '<small>' + sec.note + '</small>' : '') + '</div><div class="grid">' +
+    sec.items.map(([ch, c]) => '<button type="button" class="cell" data-c="' + c + '" aria-label="' + esc(ch) + ' ' + c.replace(/\./g, '점 ').replace(/-/g, '선 ') + '"><b>' + esc(ch) + '</b><span class="cd' + (c.length >= 5 ? ' l' : '') + '">' + codeShape(c) + '</span><small>' + toStyle(c, 'dot') + '</small></button>').join('') + '</div>').join('')).join('');
+}
+function printTable(){
+  renderTable(['en', 'num', 'ko']);
+  if (IA.on) toast('앱 안에서는 인쇄 창이 뜨지 않을 수 있어요. 위쪽 「' + IA.label + '」를 눌러 주세요.', 4200);
+  const back = () => { renderTable([S.set]); window.removeEventListener('afterprint', back); };
+  window.addEventListener('afterprint', back);
+  setTimeout(() => { window.print(); setTimeout(() => { if ($('tblBody').querySelectorAll('.gh').length > 2) back(); }, 1500); }, 60);
+}
+function tableCanvas(){
+  const W = 1240, P = 56, COL = 7, CW = (W - P * 2 - (COL - 1) * 12) / COL, CH = 118;
+  const secs = [].concat(SETS.en(), SETS.num(), SETS.ko());
+  let H = P + 70;
+  secs.forEach(s => { H += 54 + Math.ceil(s.items.length / COL) * (CH + 12); });
+  H += 50;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  x.fillStyle = '#fff'; x.fillRect(0, 0, W, H);
+  x.fillStyle = '#c2410c'; x.font = '800 38px ' + FONT; x.fillText('모스부호표', P, P + 30);
+  x.fillStyle = '#6b5f57'; x.font = '600 20px ' + FONT; x.fillText('국제 모스부호 · 한글 전신 부호   ● 점(짧게)  ▬ 선(점의 3배)', P + 230, P + 28);
+  let y = P + 70;
+  secs.forEach(s => {
+    x.fillStyle = '#1c1612'; x.font = '800 24px ' + FONT; x.fillText(s.h, P, y + 30);
+    if (s.note) { x.fillStyle = '#6b5f57'; x.font = '600 18px ' + FONT; x.fillText(s.note, P + x.measureText(s.h).width + 60, y + 29); }
+    y += 54;
+    s.items.forEach(([ch, cd], i) => {
+      const cx = P + (i % COL) * (CW + 12), cy = y + Math.floor(i / COL) * (CH + 12);
+      x.fillStyle = '#f7f4f1'; roundRect(x, cx, cy, CW, CH, 14);
+      x.fillStyle = '#1c1612'; x.font = '800 ' + (ch.length > 2 ? 26 : 36) + 'px ' + FONT; x.textAlign = 'center';
+      x.fillText(ch, cx + CW / 2, cy + 46);
+      const dw = cd.split('').reduce((a, t, j) => a + (j ? 7 : 0) + (t === '-' ? 30 : 11), 0);
+      let px = cx + (CW - dw) / 2;
+      x.fillStyle = '#c2410c';
+      cd.split('').forEach((t, j) => { if (j) px += 7; if (t === '-') { roundRect(x, px, cy + 64, 30, 11, 5.5); px += 30; } else { x.beginPath(); x.arc(px + 5.5, cy + 69.5, 5.5, 0, Math.PI * 2); x.fill(); px += 11; } });
+      x.fillStyle = '#6b5f57'; x.font = '700 17px Consolas,monospace'; x.fillText(toStyle(cd, 'dot'), cx + CW / 2, cy + 104);
+      x.textAlign = 'left';
+    });
+    y += Math.ceil(s.items.length / COL) * (CH + 12);
+  });
+  x.fillStyle = '#9a8c82'; x.font = '600 17px ' + FONT; x.fillText('쌍자음은 같은 자음 두 번 · 겹받침과 겹모음은 자모를 나눠서 보냅니다 · 모스부호 변환기', P, H - 28);
+  return c;
+}
+function saveTablePng(){
+  const c = tableCanvas();
+  c.toBlob(b => {
+    if (!b || !download(b, '모스부호표.png')) return;
+    DONE.show('모스부호표를 저장했습니다', '영문·숫자·기호·한글 자모를 한 장에 담았어요.', ['휴대폰 배경이나 공책에 붙여 두고 외우기 좋습니다.', '<b>외우기 연습</b>에서 10문제로 확인해 보세요.', '휴대폰에서는 아래 이미지를 길게 눌러 사진으로 저장할 수도 있어요.'], c.toDataURL('image/png'));
+  }, 'image/png');
+}
+
+/* ── 외우기 연습 ── */
+const QZ = {on: false, n: 0, ok: 0, q: null, pool: [], lock: false, used: []};
+function qzPool(){
+  if (S.qzSet === 'num') return Object.keys(MORSE_NUM).map(k => [k, MORSE_NUM[k]]);
+  if (S.qzSet === 'koC') return KO_CONS.split('').map(k => [k, MORSE_KO[k]]);
+  if (S.qzSet === 'koV') return KO_VOWS.split('').map(k => [k, MORSE_KO[k]]);
+  return Object.keys(MORSE_EN).map(k => [k, MORSE_EN[k]]);
+}
+function qzStart(){
+  QZ.on = true; QZ.n = 0; QZ.ok = 0; QZ.used = []; QZ.pool = qzPool();
+  $('qzStart').textContent = '↺ 처음부터'; $('qzPill').className = 'pill run'; $('qzPill').textContent = '0 / 10';
+  qzNext();
+}
+function qzNext(){
+  if (QZ.n >= 10) { qzEnd(); return; }
+  QZ.lock = false;
+  let pick; do { pick = QZ.pool[Math.floor(Math.random() * QZ.pool.length)]; } while (QZ.used.indexOf(pick[0]) >= 0 && QZ.used.length < QZ.pool.length);
+  QZ.used.push(pick[0]);
+  const opts = [pick];
+  while (opts.length < 4) { const o = QZ.pool[Math.floor(Math.random() * QZ.pool.length)]; if (opts.every(p => p[0] !== o[0])) opts.push(o); }
+  opts.sort(() => Math.random() - 0.5);
+  QZ.q = pick;
+  const m = S.qzMode;
+  $('qzStat').textContent = (QZ.n + 1) + '번째 문제 · 맞힌 개수 ' + QZ.ok;
+  $('qzQ').className = 'q' + (m === 'rev' ? ' kr' : '');
+  $('qzQ').textContent = m === 'hear' ? '🔊' : m === 'see' ? toStyle(pick[1], 'dot') : pick[0];
+  $('qzCh').innerHTML = opts.map(o => '<button type="button" class="' + (m === 'rev' ? 'mono' : '') + '" data-a="' + esc(o[0]) + '">' + (m === 'rev' ? toStyle(o[1], 'dot') : esc(o[0])) + '</button>').join('');
+  $('qzCh').classList.remove('hide');
+  $('qzAgain').classList.toggle('hide', m !== 'hear');
+  if (m === 'hear') setTimeout(() => playCode(pick[1]), 150);
+}
+function qzAnswer(btn){
+  if (!QZ.on || QZ.lock) return;
+  QZ.lock = true;
+  const right = btn.dataset.a === QZ.q[0];
+  if (right) QZ.ok++;
+  btn.classList.add(right ? 'ok' : 'no');
+  if (!right) { const r = $('qzCh').querySelector('[data-a="' + CSS.escape(QZ.q[0]) + '"]'); if (r) r.classList.add('ok'); }
+  $('qzQ').textContent = QZ.q[0] + '  ' + toStyle(QZ.q[1], 'dot');
+  $('qzQ').className = 'q';
+  if (S.qzMode !== 'hear') playCode(QZ.q[1]);
+  QZ.n++;
+  $('qzPill').textContent = QZ.n + ' / 10';
+  setTimeout(qzNext, right ? 900 : 1600);
+}
+function qzEnd(){
+  QZ.on = false;
+  $('qzCh').classList.add('hide'); $('qzAgain').classList.add('hide');
+  $('qzQ').className = 'q kr'; $('qzQ').textContent = QZ.ok + ' / 10';
+  $('qzStat').textContent = QZ.ok >= 9 ? '거의 다 외웠어요! 다른 묶음이나 「소리 듣고」로 넘어가 보세요.' : QZ.ok >= 6 ? '잘하고 있어요. 틀린 글자는 부호표에서 한 번 더 들어 보세요.' : '처음엔 다 어려워요. 부호표를 눌러 소리로 익힌 뒤 다시 해 보세요.';
+  $('qzPill').className = 'pill acc'; $('qzPill').textContent = '끝 · ' + QZ.ok + '점';
+  $('qzStart').textContent = '▶ 한 번 더';
+  const setName = {en: '영문', num: '숫자', koC: '한글 자음', koV: '한글 모음'}[S.qzSet], modeName = {hear: '소리 듣고', see: '부호 보고', rev: '글자 보고'}[S.qzMode];
+  DONE.show('연습을 마쳤습니다', setName + ' · ' + modeName + ' 10문제 중 ' + QZ.ok + '개를 맞혔어요.',
+    ['<b>소리 듣고 고르기</b>가 가장 실전에 가깝습니다. 부호 모양보다 리듬으로 외우세요.', '익숙해지면 보내기 카드의 <b>빠르기</b>를 올리고, 처음엔 <b>글자 사이를 넓게</b>를 켜 두세요.', '<b>두드리기</b> 탭에서 직접 쳐 보면 손에 익습니다.']);
+}
+
+/* ── 앱 안(WebView) ────────────────────────────────────── */
+const IA = {
+  naver: /NAVER\(inapp/i.test(UA),
+  kakao: /KAKAOTALK/i.test(UA),
+  line: /\bLine\//i.test(UA),
+  ios: IS_IOS,
+  android: IS_ANDROID
+};
+IA.on = IA.naver || IA.kakao || IA.line ||
+  /Instagram|FBAN|FBAV|FB_IAB|DaumApps|everytimeApp|band\/|KAKAOSTORY/i.test(UA) ||
+  (IA.android && /;\s*wv\)/i.test(UA));   /* 안드로이드 WebView 표시 */
+/* 크롬을 콕 집어 여는 것은 intent:// 뿐 — 카카오톡·라인은 앱이 정한 기본 브라우저가 열린다 */
+IA.chrome = IA.android && !IA.kakao && !IA.line;
+IA.copyOnly = IA.ios && !IA.kakao && !IA.line;   /* 아이폰(카카오·라인 제외)은 주소 복사로 */
+IA.app = IA.naver ? (/NAVER\(inapp;\s*blog/i.test(UA) ? '네이버 블로그 앱' : '네이버 앱') : IA.kakao ? '카카오톡' : IA.line ? '라인' : '앱';
+IA.label = IA.copyOnly ? '주소 복사' : IA.chrome ? '크롬에서 열기' : '다른 브라우저로 열기';
+function externalUrl(){
+  const url = location.href;
+  if (IA.kakao) return 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url);
+  if (IA.line) return url + (url.indexOf('?') >= 0 ? '&' : '?') + 'openExternalBrowser=1';
+  if (IA.android) return 'intent://' + url.replace(/^https?:\/\//i, '') +
+    '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(url) + ';end';
+  return '';          /* 아이폰은 사파리를 강제로 열 수 없다 */
+}
+function goOut(){
+  if (BLOCK.kind === 'frame' || (!IA.on && IN_FRAME)) { window.open(location.href.split('#')[0] + (BLOCK.what === 'mic' ? '#listen' : ''), '_blank', 'noopener'); lockInApp(false); return; }
+  const u = externalUrl();
+  if (u) { location.href = u; return; }
+  copyText(location.href, () => { if (document.body.classList.contains('ia-lock')) iaCopied(); else toast('주소를 복사했습니다. 사파리를 열고 붙여 넣거나, 화면의 메뉴에서 「다른 브라우저로 열기」를 누르세요.', 4200); });
+}
+function initInApp(){
+  if (!IA.on) return;
+  let hidden = false;
+  try { hidden = sessionStorage.getItem('morse_code.iahide') === '1'; } catch (e) { /* 무시 */ }
+  if (!hidden) document.body.classList.add('inapp');
+  $('iaMsg').textContent = IA.app + ' 안에서는 마이크·손전등·파일 저장이 막힐 수 있어요.';
+  $('iaSub').textContent = '변환과 소리 재생은 여기서도 됩니다. 소리 해독·손전등·저장은 ' + (IA.copyOnly ? '주소를 복사해 사파리에서' : '브라우저에서') + ' 열어 주세요.';
+  $('iaGo').textContent = IA.label;
+}
+/* 막는 창 — kind: 'inapp'(켜기 전) · 'inapp-failed'(켜 봤는데 실패) · 'frame'(글 안 iframe) · what: 'mic' | 'torch' */
+const BLOCK = {kind: '', what: ''};
+function openBlock(kind, what){
+  BLOCK.kind = kind; BLOCK.what = what;
+  const w = what === 'torch' ? '손전등(카메라)' : '마이크', wj = what === 'torch' ? '손전등이' : '마이크가';
+  const steps = IA.copyOnly
+    ? ['아래 <b>주소 복사</b>를 누르세요.', '화면의 <b>메뉴</b>에서 「다른 브라우저로 열기」를 누르거나, <b>사파리</b> 주소창에 붙여 넣으세요.']
+    : IA.chrome
+      ? ['아래 <b>크롬에서 열기</b>를 누르세요.', '크롬이 없으면 화면의 <b>메뉴</b>에서 「다른 브라우저로 열기」를 누르세요.']
+      : ['아래 <b>다른 브라우저로 열기</b>를 누르세요.', '열리지 않으면 화면의 <b>메뉴</b>에서 「다른 브라우저로 열기」를 누르세요.'];
+  $('iaIc').textContent = what === 'torch' ? '🔦' : '🎤';
+  if (kind === 'frame') {
+    $('iaIc').textContent = '🔗';
+    $('iaTitle').textContent = '블로그 글 안에서는 ' + (what === 'torch' ? '손전등을' : '마이크를') + ' 쓸 수 없습니다';
+    $('iaDesc').innerHTML = '이 화면은 <b>글 안에 끼워 넣은 도구</b>라 ' + wj + ' 막혀 있습니다. <b>새 창</b>으로 열면 바로 쓸 수 있어요. 변환과 소리 재생은 여기서도 됩니다.';
+    $('iaSteps').innerHTML = ['아래 <b>새 창에서 열기</b>를 누르세요.', what === 'torch' ? '새 창의 보내기 카드에서 <b>손전등</b>을 누르고 카메라를 허용하세요.' : '새 창의 <b>소리 해독</b> 탭에서 마이크로 듣기를 누르고 허용하세요.'].map(t => '<li>' + t + '</li>').join('');
+    $('iaGo2').textContent = '새 창에서 열기';
+    $('iaStay').textContent = '닫기';
+  } else {
+    $('iaTitle').textContent = kind === 'inapp-failed' ? IA.app + ' 안에서 ' + wj + ' 막혔습니다' : '앱 안에서는 ' + wj + ' 막힐 수 있습니다';
+    $('iaDesc').innerHTML = kind === 'inapp-failed'
+      ? '<b>' + IA.app + '</b> 안 화면이 ' + w + '를 넘겨주지 않았습니다. <b>브라우저로 옮기면</b> 허용 창이 뜨고 바로 쓸 수 있어요.'
+      : '<b>' + IA.app + '</b> 안에서 열렸습니다. 앱 안 화면은 <b>' + w + ' 권한을 막아 두는 경우가 많아</b> 켜지지 않을 수 있습니다. 변환과 소리 재생은 여기서도 그대로 됩니다.';
+    $('iaSteps').innerHTML = steps.map(t => '<li>' + t + '</li>').join('');
+    $('iaGo2').textContent = IA.on ? IA.label : '다른 브라우저로 열기';
+    $('iaStay').textContent = kind === 'inapp-failed' ? '닫기' : '여기서 그냥 해 볼게요';
+  }
+  lockInApp(true);
+}
+function lockInApp(on){
+  document.body.classList.toggle('ia-lock', on);
+  const w = document.querySelector('.wrap');
+  if (on) w.setAttribute('inert', ''); else w.removeAttribute('inert');
+}
+function iaCopied(){
+  $('iaDesc').innerHTML = '주소를 <b>복사했습니다.</b> 이제 <b>사파리</b>를 열고 주소창에 붙여 넣으세요.';
+  $('iaSteps').innerHTML = '<li>홈 화면에서 <b>사파리</b>를 엽니다.</li><li>주소창을 길게 눌러 <b>붙여넣기</b> 하세요.</li><li>또는 이 화면의 <b>메뉴</b> → 「다른 브라우저로 열기」.</li>';
+}
+
+/* ════════════════════════════════════════════════════════════
+   결과 카드 — 소리 파일·이미지 저장, 파일 해독 완료, 연습 10문제 완료 때 펼친다
+     · 창으로 덮지 않고 옆 칸(휴대폰은 본문) 흐름 안에 카드로 펼친다
+     · PC 에서는 옆 칸만 굴린다
+   ════════════════════════════════════════════════════════════ */
+const DONE = {
+  show(title, msg, steps, img){
+    $('doneTitle').textContent = title;
+    $('doneMsg').textContent = msg;
+    $('doneSteps').innerHTML = steps.map(t => '<li>' + t + '</li>').join('');
+    $('doneImg').classList.toggle('hide', !img);
+    $('doneImgNote').classList.toggle('hide', !img);
+    if (img) $('doneImg').src = img;
+    $('doneCard').classList.remove('hide');
+    clearTimeout(this.goT);
+    this.goT = setTimeout(() => {
+      const pc = window.matchMedia('(min-width:980px)').matches;
+      if (pc) {
+        const side = $('side'), card = $('doneCard');
+        side.scrollTo({top: Math.max(0, card.offsetTop - side.clientHeight / 2 + card.offsetHeight / 2), behavior: 'smooth'});
+      } else {
+        $('doneCard').scrollIntoView({behavior: 'smooth', block: 'center'});
+      }
+    }, 250);
+  },
+  hide(){ $('doneCard').classList.add('hide'); }
+};
+
+/* ── 탭 ─────────────────────────────────────────────────── */
+const TABS = {conv: {p: 'pConv', b: 'tabConv', h: 'convert'}, listen: {p: 'pListen', b: 'tabListen', h: 'listen'}, tap: {p: 'pTap', b: 'tabTap', h: 'tap'}, table: {p: 'pTable', b: 'tabTable', h: 'table'}};
+function setTab(t, fromHash){
+  if (!TABS[t]) t = 'conv';
+  const prev = S.tab;
+  S.tab = t;
+  Object.keys(TABS).forEach(k => {
+    const on = k === t;
+    $(TABS[k].p).classList.toggle('hide', !on);
+    $(TABS[k].b).classList.toggle('on', on);
+    $(TABS[k].b).setAttribute('aria-selected', on);
+  });
+  if (prev === 'listen' && t !== 'listen' && LS.on) micStop();
+  if (prev === 'tap' && t !== 'tap') { tapUp(); }
+  if (!fromHash) { try { history.replaceState(history.state, '', t === 'conv' ? location.pathname + location.search : '#' + TABS[t].h); } catch (e) { /* 무시 */ } }
+  if (prev && prev !== t && $('tabs').getBoundingClientRect().top < 0) $('tabs').scrollIntoView({block: 'start'});
+  if (t === 'listen' && LS.fileRes && LS.fileRes.env) drawScope(LS.fileRes.env, LS.fileRes.st || new Uint8Array(LS.fileRes.env.length), LS.fileRes.noise || -60, LS.fileRes.peak || -20, -1);
+  else if (t === 'listen') drawScope([], [], -90, -90, -1);
+}
+function tabFromHash(){
+  const h = (location.hash || '').replace('#', '');
+  return Object.keys(TABS).find(k => TABS[k].h === h) || '';
+}
+
+/* ── 시작 ──────────────────────────────────────────────── */
+function segOn(id, val){ document.querySelectorAll('#' + id + ' button').forEach(b => b.classList.toggle('on', b.dataset.v === String(val))); }
+function segBind(id, fn){ document.querySelectorAll('#' + id + ' button').forEach(b => b.addEventListener('click', () => fn(b.dataset.v))); }
+function init(){
+  document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+  window.addEventListener('hashchange', () => {
+    if (readHashMessage()) { setTab('conv', true); convert(); return; }
+    const t = tabFromHash(); if (t && t !== S.tab) setTab(t, true);
+  });
+
+  /* 변환 */
+  let convT = 0;
+  $('inp').setAttribute('maxlength', '5000');
+  $('inp').addEventListener('input', () => { clearTimeout(convT); convT = setTimeout(convert, $('inp').value.length > 1500 ? 180 : 40); });
+  document.querySelectorAll('[data-ex]').forEach(b => b.addEventListener('click', () => { $('inp').value = b.dataset.ex; convert(); }));
+  $('clrBtn').addEventListener('click', () => { $('inp').value = ''; convert(); $('inp').focus(); });
+  $('swapBtn').addEventListener('click', () => {
+    if (!PLAN.dir) { toast('먼저 위 칸에 글자나 모스부호를 넣으세요'); return; }
+    $('inp').value = PLAN.dir === 'enc' ? morseString(PLAN.groups, 'ascii') : PLAN.plain;
+    convert();
+    toast(PLAN.dir === 'dec' ? '부호를 입력 칸으로 옮겼어요 — 다시 글자로 읽은 결과입니다' : '글자를 입력 칸으로 옮겼어요 — 다시 부호로 바꾼 결과입니다');
+  });
+  $('kpadBtn').addEventListener('click', () => {
+    const on = $('kpad').classList.toggle('hide') === false;
+    $('kpadBtn').setAttribute('aria-pressed', on ? 'true' : 'false');
+    $('kpadBtn').classList.toggle('on', on);
+    /* 자판을 쓰는 동안 휴대폰 글자판이 올라와 화면을 가리지 않게 */
+    if (on) $('inp').setAttribute('inputmode', 'none'); else $('inp').removeAttribute('inputmode');
+  });
+  document.querySelectorAll('#kpad button').forEach(b => {
+    b.addEventListener('pointerdown', e => e.preventDefault());   /* 입력 칸 커서를 빼앗지 않게 */
+    b.addEventListener('click', () => {
+      const k = b.dataset.k;
+      insertAtCaret(k);
+      if (k === '.' || k === '-') { stopPlay(true); playCode(k, Math.max(15, S.wpm)); }
+    });
+  });
+  segBind('styleSeg', v => { S.style = v; save(); segOn('styleSeg', v); convert(); });
+  segBind('readSeg', v => { S.read = v; save(); segOn('readSeg', v); convert(); });
+  $('copyBtn').addEventListener('click', () => {
+    const t = resultText();
+    if (!t) { toast('먼저 위 칸에 글자나 모스부호를 넣으세요'); return; }
+    copyText(t, () => toast(PLAN.dir === 'enc' ? '모스부호를 복사했어요' : '해독한 글자를 복사했어요'));
+  });
+  $('linkBtn').addEventListener('click', shareLink);
+  $('brk').addEventListener('click', e => { const b = e.target.closest('.bk[data-c]'); if (b) playCode(b.dataset.c); });
+
+  /* 보내기 */
+  document.querySelectorAll('#outs button').forEach(b => b.addEventListener('click', () => toggleOut(b.dataset.o)));
+  $('playBtn').addEventListener('click', () => { if (P.on) stopPlay(); else startPlay(); });
+  $('lampX').addEventListener('click', () => stopPlay());
+  $('lamp').addEventListener('click', e => { if (e.target.id === 'lamp') stopPlay(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && P.on) stopPlay(); });
+  document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && P.on && P.outs && P.outs.scr && !IS_IOS) stopPlay(); });
+  $('wpm').value = S.wpm; wpmUI();
+  $('wpm').addEventListener('input', e => { S.wpm = +e.target.value; wpmUI(); save(); playInfo(); });
+  $('hz').value = S.hz; $('hzHint').textContent = S.hz + 'Hz';
+  $('hz').addEventListener('input', e => { S.hz = +e.target.value; $('hzHint').textContent = S.hz + 'Hz'; save(); });
+  $('hz').addEventListener('change', () => { if (!P.on) playCode('.-'); });
+  $('vol').value = S.vol; $('volHint').textContent = S.vol + '%';
+  $('vol').addEventListener('input', e => { S.vol = +e.target.value; $('volHint').textContent = S.vol + '%'; save(); if (master) master.gain.setTargetAtTime(volGain(), AC.currentTime, 0.02); });
+  $('farns').checked = !!S.farns; $('farns').addEventListener('change', e => { S.farns = e.target.checked; save(); playInfo(); });
+  $('loop').checked = !!S.loop; $('loop').addEventListener('change', e => { S.loop = e.target.checked; save(); });
+  $('cardPlain').checked = S.cardPlain !== false; $('cardPlain').addEventListener('change', e => { S.cardPlain = e.target.checked; save(); });
+  $('wavBtn').addEventListener('click', saveWav);
+  $('pngBtn').addEventListener('click', savePng);
+  $('doneHide').addEventListener('click', () => DONE.hide());
+
+  /* 소리 해독 */
+  $('micBtn').addEventListener('click', micStart);
+  $('fileBtn').addEventListener('click', () => { if (LS.on) micStop(); $('fileIn').value = ''; $('fileIn').click(); });
+  $('fileIn').addEventListener('change', e => openFile(e.target.files && e.target.files[0]));
+  $('fileAudio').addEventListener('timeupdate', () => {
+    const R = LS.fileRes, au = $('fileAudio');
+    if (R && R.env && au.duration) drawScope(R.env, R.st || new Uint8Array(R.env.length), R.noise, R.peak, au.currentTime / au.duration);
+  });
+  segBind('lsReadSeg', v => { S.lsRead = v; save(); segOn('lsReadSeg', v); lsShow(); });
+  $('lsClear').addEventListener('click', () => { LS.all = []; LS.st = []; LS.fileMor = ''; lsShow(); drawScope([], [], -90, -90, -1); });
+  $('lsToConv').addEventListener('click', () => {
+    const m = lsMorse().replace(/ \/$/, '').trim();
+    if (!m) { toast('아직 들린 부호가 없어요'); return; }
+    if (LS.on) micStop();
+    $('inp').value = m; setTab('conv'); convert(); toast('들린 부호를 변환 칸에 넣었어요');
+  });
+
+  /* 두드리기 */
+  const key = $('key');
+  key.addEventListener('pointerdown', e => { e.preventDefault(); try { key.setPointerCapture(e.pointerId); } catch (x) { /* 무시 */ } key.focus({preventScroll: true}); tapDown(); });
+  key.addEventListener('pointerup', tapUp);
+  key.addEventListener('pointercancel', tapUp);
+  key.addEventListener('lostpointercapture', tapUp);
+  key.addEventListener('contextmenu', e => e.preventDefault());
+  key.addEventListener('keydown', e => { if (e.code === 'Space' || e.key === 'Enter') { e.preventDefault(); if (!e.repeat) tapDown(); } });
+  key.addEventListener('keyup', e => { if (e.code === 'Space' || e.key === 'Enter') { e.preventDefault(); tapUp(); } });
+  key.addEventListener('blur', tapUp);
+  segOn('tapSpdSeg', S.tapWpm);
+  segBind('tapSpdSeg', v => { S.tapWpm = +v; save(); segOn('tapSpdSeg', v); TAP.u = tapBase(); TAP.marks = []; toast('점·선 기준을 ' + {8: '느리게', 13: '보통', 20: '빠르게'}[v] + '로 맞췄어요'); });
+  TAP.u = tapBase();
+  $('tapTone').checked = S.tapTone !== false; $('tapTone').addEventListener('change', e => { S.tapTone = e.target.checked; save(); });
+  segBind('tapReadSeg', v => { S.tapRead = v; save(); segOn('tapReadSeg', v); tapShow(); });
+  $('tapClear').addEventListener('click', tapClear);
+  $('tapBack').addEventListener('click', tapBack);
+  $('tapToConv').addEventListener('click', () => {
+    const m = (TAP.mor + (TAP.sym ? ' ' + TAP.sym : '')).replace(/ \/ ?$/, '').trim();
+    if (!m) { toast('아직 두드린 부호가 없어요'); return; }
+    $('inp').value = m; setTab('conv'); convert(); toast('두드린 부호를 변환 칸에 넣었어요');
+  });
+
+  /* 부호표·연습 */
+  segOn('setSeg', S.set); renderTable([S.set]);
+  segBind('setSeg', v => { S.set = v; save(); segOn('setSeg', v); renderTable([v]); });
+  $('tblBody').addEventListener('click', e => {
+    const b = e.target.closest('.cell'); if (!b) return;
+    document.querySelectorAll('.cell.cur').forEach(x => x.classList.remove('cur'));
+    b.classList.add('cur');
+    const d = playCode(b.dataset.c);
+    setTimeout(() => b.classList.remove('cur'), d * 1000 + 250);
+  });
+  $('printBtn').addEventListener('click', printTable);
+  $('tblPng').addEventListener('click', saveTablePng);
+  segOn('qzSetSeg', S.qzSet); segOn('qzModeSeg', S.qzMode);
+  segBind('qzSetSeg', v => { S.qzSet = v; save(); segOn('qzSetSeg', v); if (QZ.on) qzStart(); });
+  segBind('qzModeSeg', v => { S.qzMode = v; save(); segOn('qzModeSeg', v); if (QZ.on) qzStart(); });
+  $('qzStart').addEventListener('click', qzStart);
+  $('qzAgain').addEventListener('click', () => { if (QZ.q) playCode(QZ.q[1]); });
+  $('qzCh').addEventListener('click', e => { const b = e.target.closest('button'); if (b) qzAnswer(b); });
+
+  /* 앱 안·iframe 창 */
+  $('iaGo').addEventListener('click', goOut);
+  $('iaGo2').addEventListener('click', goOut);
+  $('iaStay').addEventListener('click', () => {
+    const k = BLOCK.kind, w = BLOCK.what;
+    lockInApp(false);
+    if (k === 'inapp') { IA.tried = true; if (w === 'torch') toggleOut('torch'); else micStart(); }
+  });
+  $('iaX').addEventListener('click', () => {
+    document.body.classList.remove('inapp');
+    try { sessionStorage.setItem('morse_code.iahide', '1'); } catch (e) { /* 무시 */ }
+  });
+
+  document.addEventListener('visibilitychange', () => { if (document.hidden && TORCH.track && !P.on) { torchStop(); S.outs.torch = false; outsUI(); } });
+
+  segOn('styleSeg', S.style); segOn('readSeg', S.read); segOn('lsReadSeg', S.lsRead); segOn('tapReadSeg', S.tapRead);
+  outsUI();
+  initInApp();
+  /* 받은 링크(#m=)면 부호를 넣고 변환 탭으로. 아니면 주소의 # 탭, 없으면 변환 */
+  const got = readHashMessage();
+  const first = got ? 'conv' : (tabFromHash() || 'conv');
+  setTab(first, true);
+  convert();
+  if (got) toast('받은 모스부호를 넣었어요 · 아래에서 해독 결과를 확인하세요', 4200);
+}
+init();
+window.__MC = {S, P, LS, TAP, QZ, DONE, IA, get PLAN(){ return PLAN; }, encodeText, decodeMorse, morseString, groupsText, buildTimeline, makeWav, analyzeSamples, cardCanvas, tableCanvas, kCompose, setTab, convert, startPlay, stopPlay, lsFeed, lsReset, openFile, tapDown, tapUp};
+</script>
+</body>
+</html>
